@@ -5,6 +5,9 @@ from google.adk.models import LlmRequest
 
 logger = logging.getLogger(__name__)
 
+RATE_LIMIT_SECS = 60
+RPM_QUOTA = 10
+
 
 def rate_limit_callback(
     callback_context: CallbackContext, llm_request: LlmRequest
