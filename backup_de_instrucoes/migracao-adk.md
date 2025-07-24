@@ -20,16 +20,6 @@ Seu objetivo é **CRIAR em tempo real** um novo projeto no diretório `$ARGUMENT
 
 ## 2. PROTOCOLO DE EXECUÇÃO OBRIGATÓRIO
 
-### FASE 0: MIGRAÇÃO DE ARQUIVOS DE CONFIGURAÇÃO DO NÍVEL RAIZ
-1.  **LISTAR (com `!ls`)** arquivos no diretório raiz de origem: `!ls -la $ARGUMENTS[0]/ | grep -E "^-"`
-2.  **IDENTIFICAR** arquivos de configuração essenciais: `pyproject.toml`, `README.md`, `.env.example`, `.gitignore`
-3.  **CRIAR** cada arquivo de configuração no destino, adaptando o conteúdo:
-    - Para `pyproject.toml`: Adaptar nome, descrição e autor para contexto educacional
-    - Para `README.md`: Criar nova documentação focada no Professor Virtual
-    - Para `.env.example`: Manter estrutura mas adaptar comentários
-    - Para `.gitignore`: Copiar integralmente
-4.  **REPORTAR** cada arquivo criado: `✅ 📋 Configuração criada: $ARGUMENTS[1]/[arquivo]`
-
 ### FASE 1: MAPEAMENTO DA ESTRUTURA
 1.  **LISTAR (com `!ls`)** o diretório raiz de origem: `!ls -F $ARGUMENTS[0]/`
 2.  **IDENTIFICAR** todas as pastas existentes na saída.
@@ -57,23 +47,6 @@ Para CADA arquivo identificado, execute sequencialmente:
 3.  **GERAR** o Log Final Consolidado em formato **JSON** (ver Seção 9).
 4.  **REPORTAR** conclusão: `✅ MIGRAÇÃO COMPLETA: X arquivos criados em $ARGUMENTS[1]`
 
-### FASE 5: MIGRAÇÃO DE DIRETÓRIOS AUXILIARES
-1.  **CRIAR** diretórios auxiliares no destino:
-    - `!mkdir -p $ARGUMENTS[1]/deployment`
-    - `!mkdir -p $ARGUMENTS[1]/eval/eval_data`
-    - `!mkdir -p $ARGUMENTS[1]/eval/sessions`
-    - `!mkdir -p $ARGUMENTS[1]/tests/unit`
-2.  **MIGRAR** arquivos de deployment:
-    - Adaptar `deployment/deploy.py` com nome do agente educacional
-3.  **CRIAR** estrutura de avaliação:
-    - `eval/eval_data/simple.test.json` com casos de teste educacionais
-    - `eval/eval_data/test_config.json` com configuração de testes
-    - `eval/test_eval.py` adaptado para ferramentas educacionais
-4.  **CRIAR** testes unitários:
-    - `tests/unit/test_tools.py` para testar ferramentas educacionais
-    - `tests/unit/test_config.py` para testar configurações
-5.  **REPORTAR** cada diretório criado: `✅ 📂 Estrutura auxiliar criada: $ARGUMENTS[1]/[diretório]`
-
 ## 3. REGRAS ABSOLUTAS DE EXECUÇÃO
 
 - **EXECUTAR** cada ação uma por vez, reportando o resultado.
@@ -97,28 +70,9 @@ Aguardando orientação...
 
 ## 5. MAPEAMENTO DE EQUIVALÊNCIAS (Exemplo)
 
-### Arquivos Python do Módulo Principal:
 - `tools.py` → Extrair de `@docs/professor-virtual/implementation.py`
 - `prompts.py` → Extrair de `@docs/professor-virtual/instruction_providers.py`
 - Para arquivos sem correspondência óbvia: **PARAR e PERGUNTAR**.
-
-### Arquivos de Configuração do Nível Raiz:
-- `pyproject.toml` → Adaptar de `@$ARGUMENTS[0]/pyproject.toml`:
-  - name: "professor-virtual"
-  - description: "Professor Virtual educacional usando Agent Development Kit"
-  - authors: Manter estrutura mas adaptar nome
-- `README.md` → Criar novo com base em `@$ARGUMENTS[0]/README.md`:
-  - Título: "Professor Virtual - Assistente Educacional"
-  - Seções: Visão Geral, Ferramentas, Instalação, Uso
-  - Adaptar exemplos para contexto educacional
-- `.env.example` → Copiar de `@$ARGUMENTS[0]/.env.example` com comentários adaptados
-- `.gitignore` → Copiar integralmente de `@$ARGUMENTS[0]/.gitignore`
-
-### Arquivos de Deployment e Testes:
-- `deployment/deploy.py` → Adaptar de `@$ARGUMENTS[0]/deployment/deploy.py`:
-  - Trocar referências de "customer_service" para "professor_virtual"
-- `eval/test_eval.py` → Criar estrutura básica para testes de avaliação
-- `tests/unit/test_tools.py` → Criar testes para ferramentas educacionais
 
 ## 6. FORMATO DE REPORTE DE PROGRESSO
 
@@ -126,48 +80,37 @@ Use SEMPRE estes marcadores: `🔄`, `✅`, `❓`, `📁`, `📄`, `⚠️`, `�
 
 ## 7. ORDEM DE PROCESSAMENTO
 
-Processe SEMPRE nesta ordem:
-1. **FASE 0**: Arquivos de configuração do nível raiz
-2. **FASE 1-3**: Estrutura e arquivos do módulo principal: `entities/`, `prompts.py`, `tools.py`, `callbacks.py`, `agent.py`
-3. **FASE 5**: Diretórios auxiliares (deployment/, eval/, tests/)
+Processe os arquivos SEMPRE nesta ordem: `entities/`, `prompts.py`, `tools.py`, `callbacks.py`, `agent.py`.
 
 ## 8. EXEMPLO DE EXECUÇÃO ATUALIZADO
 
 ```
 🔄 INICIANDO MIGRAÇÃO ADK
 
-📋 FASE 0: Migrando arquivos de configuração...
-> !ls -la customer-service/ | grep -E "^-"
--rw-r--r--  pyproject.toml
--rw-r--r--  README.md
--rw-r--r--  .env.example
--rw-r--r--  .gitignore
-
-🔄 Processando: pyproject.toml
-Analisando @customer-service/pyproject.toml...
-> !echo -e "[tool.poetry]\nname = \"professor-virtual\"\nversion = \"0.1.0\"\ndescription = \"Professor Virtual educacional usando Agent Development Kit\"\n..." > professor-virtual/pyproject.toml
-✅ 📋 Configuração criada: professor-virtual/pyproject.toml
-
-📁 FASE 1: Criando estrutura do professor-virtual...
 > !ls -F customer-service/
 entities/
 shared_libraries/
 tools/
+agent.py
 ...
 
+📁 Criando estrutura do professor-virtual...
 > !mkdir -p professor-virtual/entities
 ✅ 📁 Criada: professor-virtual/entities/
+> !mkdir -p professor-virtual/shared_libraries
+✅ 📁 Criada: professor-virtual/shared_libraries/
 ...
 
-📄 FASE 2-3: Migrando arquivos Python...
+📄 Criando arquivos vazios...
+> !touch professor-virtual/agent.py
+✅ 📄 Criado (vazio): professor-virtual/agent.py
+...
+
 🔄 Processando: tools.py
 Analisando @customer-service/tools.py e @docs/professor-virtual/implementation.py...
+Escrevendo professor-virtual/tools.py...
 > !echo -e "def transcrever_audio():\n  # ...lógica...\n  return" > professor-virtual/tools.py
 ✅ Migrado: tools.py
-
-📂 FASE 5: Criando diretórios auxiliares...
-> !mkdir -p professor-virtual/deployment
-✅ 📂 Estrutura auxiliar criada: professor-virtual/deployment/
 ```
 
 ## 9. LOG FINAL OBRIGATÓRIO (FORMATO JSON)
@@ -178,41 +121,15 @@ Ao concluir TODAS as operações, você DEVE gerar um **único objeto JSON** con
 {
   "migrationSummary": {
     "executionTimestamp": "[timestamp]",
-    "sourceDirectory": "$ARGUMENTS[0]",
-    "targetDirectory": "$ARGUMENTS[1]",
+    "sourceDirectory": "$ARGUMENTS",
+    "targetDirectory": "$ARGUMENTS",
     "status": "COMPLETED",
-    "totalFilesProcessed": 0,
-    "totalDirectoriesCreated": 0
+    "totalFilesProcessed": 0
   },
-  "configurationFiles": [
-    {
-      "filePath": "pyproject.toml",
-      "status": "Adapted",
-      "changes": [
-        "name: customer-service → professor-virtual",
-        "description: Updated to educational context"
-      ]
-    },
-    {
-      "filePath": "README.md",
-      "status": "Created",
-      "changes": ["New educational-focused documentation"]
-    },
-    {
-      "filePath": ".env.example",
-      "status": "Copied",
-      "changes": ["Comments adapted to educational context"]
-    },
-    {
-      "filePath": ".gitignore",
-      "status": "Copied",
-      "changes": ["No changes - copied as is"]
-    }
-  ],
   "processedFiles": [
     {
-      "filePath": "entities/customer.py",
-      "sourceFile": "$ARGUMENTS[0]/entities/customer.py",
+      "filePath": "entities/arquivo.py",
+      "sourceFile": "$ARGUMENTS/entities/arquivo.py",
       "status": "Migrated",
       "actions": [
         "REMOVED: class Customer",
@@ -222,7 +139,7 @@ Ao concluir TODAS as operações, você DEVE gerar um **único objeto JSON** con
     },
     {
       "filePath": "tools.py",
-      "sourceFile": "$ARGUMENTS[0]/tools.py",
+      "sourceFile": "$ARGUMENTS/tools.py",
       "status": "Migrated",
       "actions": [
         "REMOVED: function get_customer_details()",
@@ -231,30 +148,11 @@ Ao concluir TODAS as operações, você DEVE gerar um **único objeto JSON** con
       "patternsPreserved": ["Tool return structure {status: str, data: dict}"]
     }
   ],
-  "supportDirectories": [
-    {
-      "directory": "deployment/",
-      "status": "Created",
-      "files": ["deploy.py"]
-    },
-    {
-      "directory": "eval/",
-      "status": "Created",
-      "files": ["test_eval.py", "eval_data/simple.test.json", "eval_data/test_config.json"]
-    },
-    {
-      "directory": "tests/",
-      "status": "Created",
-      "files": ["unit/test_tools.py", "unit/test_config.py"]
-    }
-  ],
   "summaryStats": {
     "functionsRemoved": 0,
     "functionsAdded": 0,
     "classesModified": 0,
-    "filesCreated": 0,
-    "configurationFilesCreated": 0,
-    "supportDirectoriesCreated": 0
+    "filesCreated": 0
   },
   "issuesAndPendencies": [
     "File X needs manual review.",

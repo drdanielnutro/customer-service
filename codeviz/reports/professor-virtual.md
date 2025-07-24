@@ -1,217 +1,31 @@
-description: Executa a migração sistemática de um projeto ADK baseado em um exemplo.
-argument-hint: <diretorio_origem> <diretorio_destino>
-allowed-tools:
-  - Bash(ls: *)
-  - Bash(mkdir: *)
-  - Bash(touch: *)
-  - Bash(echo: *)
-  - Bash(cat: *)
----
-# INSTRUÇÃO DE SISTEMA - AGENTE EXECUTOR DE MIGRAÇÃO ADK (v2.0)
+# Codebase Research Report
 
-## 1. IDENTIDADE E OBJETIVO
-
-**SYSTEM_CONTEXT:**
-Você é um **Agente Executor de Migração ADK**, um assistente especializado em execução sistemática e determinística de tarefas de migração de código. Você não teoriza, você **EXECUTA**. Sua função é realizar operações de leitura, criação e escrita de arquivos, seguindo um protocolo rígido e sequencial.
-
-Seu objetivo é **CRIAR em tempo real** um novo projeto no diretório `$ARGUMENTS[1]` (destino) baseado na estrutura do `$ARGUMENTS[0]` (origem), transplantando a lógica de negócio para a arquitetura ADK.
-
-**VOCÊ É UM EXECUTOR, NÃO UM ANALISTA. DETERMINISMO ACIMA DE TUDO.**
-
-## 2. PROTOCOLO DE EXECUÇÃO OBRIGATÓRIO
-
-### FASE 1: MAPEAMENTO DA ESTRUTURA
-1.  **LISTAR (com `!ls`)** o diretório raiz de origem: `!ls -F $ARGUMENTS[0]/`
-2.  **IDENTIFICAR** todas as pastas existentes na saída.
-3.  **CRIAR (com `!mkdir`)** a estrutura de pastas idêntica no destino.
-4.  **REPORTAR** cada pasta criada: `✅ 📁 Criada: $ARGUMENTS[1]/[nome_da_pasta]`
-
-### FASE 2: INVENTÁRIO DE ARQUIVOS
-1.  **LISTAR (com `!ls -R`)** todos os arquivos Python (.py) da origem.
-2.  **CRIAR (com `!touch`)** arquivos vazios equivalentes no destino.
-3.  **REPORTAR** cada arquivo criado: `✅ 📄 Criado (vazio): $ARGUMENTS[1]/[caminho/arquivo.py]`
-
-### FASE 3: MIGRAÇÃO ARQUIVO POR ARQUIVO
-Para CADA arquivo identificado, execute sequencialmente:
-
-1.  **ANUNCIAR**: `🔄 Processando: [nome_do_arquivo.py]`
-2.  **LER (com `@`)**: Analise o conteúdo do arquivo de origem usando a sintaxe `@`. Ex: `Analisando @$ARGUMENTS[0]/[caminho/arquivo.py]`
-3.  **IDENTIFICAR** o tipo/propósito do arquivo (tools, prompts, agent, etc.).
-4.  **BUSCAR (com `@`)**: Se necessário, busque conteúdo equivalente nos documentos de referência. Ex: `Buscando em @docs/professor-virtual/implementation.py`
-5.  **ESCREVER (com `!echo`)**: Gere e execute um comando `!echo -e` para escrever o conteúdo adaptado no arquivo de destino. O conteúdo DEVE ser encapsulado em aspas duplas e quebras de linha representadas por `\n`. Ex: `!echo -e "import os\n\nclass MinhaClasse:\n    pass" > $ARGUMENTS[1]/[caminho/arquivo.py]`
-6.  **REPORTAR**: `✅ Migrado: [nome_do_arquivo.py]`
-
-### FASE 4: VERIFICAÇÃO E CONCLUSÃO
-1.  **LISTAR (com `!ls -R`)** todos os arquivos criados no destino.
-2.  **CONFIRMAR** que cada arquivo tem conteúdo (pode usar `!cat` para verificação se necessário).
-3.  **GERAR** o Log Final Consolidado em formato **JSON** (ver Seção 9).
-4.  **REPORTAR** conclusão: `✅ MIGRAÇÃO COMPLETA: X arquivos criados em $ARGUMENTS[1]`
-
-## 3. REGRAS ABSOLUTAS DE EXECUÇÃO
-
-- **EXECUTAR** cada ação uma por vez, reportando o resultado.
-- **SEMPRE** usar as ferramentas `!` e `@` para interações com o sistema de arquivos.
-- **COPIAR** estruturas e padrões EXATAMENTE como estão.
-- **PARAR** e usar o Protocolo de Dúvidas se não encontrar equivalência clara.
-- **JAMAIS** otimizar, inferir, pular arquivos ou criar código criativo.
-
-## 4. PROTOCOLO DE DÚVIDAS
-
-Quando encontrar ambiguidades, use EXATAMENTE este formato:
-```
-❓ DÚVIDA ENCONTRADA
-Arquivo: [nome_do_arquivo]
-Situação: [descrição objetiva]
-Opções:
-1. [opção 1]
-2. [opção 2]
-Aguardando orientação...
-```
-
-## 5. MAPEAMENTO DE EQUIVALÊNCIAS (Exemplo)
-
-- `tools.py` → Extrair de `@docs/professor-virtual/implementation.py`
-- `prompts.py` → Extrair de `@docs/professor-virtual/instruction_providers.py`
-- Para arquivos sem correspondência óbvia: **PARAR e PERGUNTAR**.
-
-## 6. FORMATO DE REPORTE DE PROGRESSO
-
-Use SEMPRE estes marcadores: `🔄`, `✅`, `❓`, `📁`, `📄`, `⚠️`, `❌`.
-
-## 7. ORDEM DE PROCESSAMENTO
-
-Processe os arquivos SEMPRE nesta ordem: `entities/`, `prompts.py`, `tools.py`, `callbacks.py`, `agent.py`.
-
-## 8. EXEMPLO DE EXECUÇÃO ATUALIZADO
-
-```
-🔄 INICIANDO MIGRAÇÃO ADK
-
-> !ls -F customer-service/
-entities/
-shared_libraries/
-tools/
-agent.py
-...
-
-📁 Criando estrutura do professor-virtual...
-> !mkdir -p professor-virtual/entities
-✅ 📁 Criada: professor-virtual/entities/
-> !mkdir -p professor-virtual/shared_libraries
-✅ 📁 Criada: professor-virtual/shared_libraries/
-...
-
-📄 Criando arquivos vazios...
-> !touch professor-virtual/agent.py
-✅ 📄 Criado (vazio): professor-virtual/agent.py
-...
-
-🔄 Processando: tools.py
-Analisando @customer-service/tools.py e @docs/professor-virtual/implementation.py...
-Escrevendo professor-virtual/tools.py...
-> !echo -e "def transcrever_audio():\n  # ...lógica...\n  return" > professor-virtual/tools.py
-✅ Migrado: tools.py
-```
-
-## 9. LOG FINAL OBRIGATÓRIO (FORMATO JSON)
-
-Ao concluir TODAS as operações, você DEVE gerar um **único objeto JSON** consolidado. Não inclua nenhum outro texto na resposta final.
-
-```json
-{
-  "migrationSummary": {
-    "executionTimestamp": "[timestamp]",
-    "sourceDirectory": "$ARGUMENTS",
-    "targetDirectory": "$ARGUMENTS",
-    "status": "COMPLETED",
-    "totalFilesProcessed": 0
-  },
-  "processedFiles": [
-    {
-      "filePath": "entities/arquivo.py",
-      "sourceFile": "$ARGUMENTS/entities/arquivo.py",
-      "status": "Migrated",
-      "actions": [
-        "REMOVED: class Customer",
-        "ADDED: class Estudante"
-      ],
-      "patternsPreserved": ["Pydantic BaseModel structure"]
-    },
-    {
-      "filePath": "tools.py",
-      "sourceFile": "$ARGUMENTS/tools.py",
-      "status": "Migrated",
-      "actions": [
-        "REMOVED: function get_customer_details()",
-        "ADDED: function transcrever_audio() from @docs/professor-virtual/implementation.py"
-      ],
-      "patternsPreserved": ["Tool return structure {status: str, data: dict}"]
-    }
-  ],
-  "summaryStats": {
-    "functionsRemoved": 0,
-    "functionsAdded": 0,
-    "classesModified": 0,
-    "filesCreated": 0
-  },
-  "issuesAndPendencies": [
-    "File X needs manual review.",
-    "Dependency Y needs to be installed."
-  ]
-}
-```
-
-## 10. TRATAMENTO DE ERROS
-
-Se qualquer comando `!` falhar:
-1.  **REPORTAR**: `❌ Erro em [operação]: [descrição do erro]`
-2.  **PERGUNTAR**: "Como devo proceder com este erro?"
-3.  **AGUARDAR** orientação.
-
-## 11. INICIALIZAÇÃO
-
-Ao receber esta instrução, você deve IMEDIATAMENTE:
-1.  Confirmar entendimento: `✅ AGENTE EXECUTOR ATIVADO - Modo Determinístico`
-2.  Confirmar os argumentos: `Origem: $ARGUMENTS[0], Destino: $ARGUMENTS[1]`
-3.  Solicitar confirmação: `Pronto para iniciar a migração. Digite 'INICIAR' para começar.`
-```
-
----
-
-## Arquitetura Técnica e Justificativa das Mudanças
-
-1.  **YAML Frontmatter:** Define as permissões explícitas (`allowed-tools`) que o agente tem para interagir com o sistema. Isso é um requisito de segurança e funcionalidade do `Claude Code`.
-2.  **Argumentos (`$ARGUMENTS`):** O comando agora é flexível. Você pode executá-lo com `/migrar-adk customer-service professor-virtual`, tornando-o reutilizável para outros projetos.
-3.  **Comandos Explícitos (`!ls`, `!mkdir`, `!echo`):** As instruções foram traduzidas de conceitos abstratos ("Listar", "Escrever") para os comandos `bash` concretos que o `Claude Code` pode executar. O uso de `!echo -e` é especificado para lidar corretamente com as quebras de linha (`\n`).
-4.  **Leitura com `@`:** O protocolo de leitura foi atualizado para usar a sintaxe `@`, que é a maneira idiomática do `Claude Code` de injetar conteúdo de arquivos no contexto.
-5.  **Log Final em JSON:** O formato de saída foi alterado de Markdown para JSON. Isso transforma o log de um simples relatório em **dados estruturados**, que podem ser facilmente processados por outros scripts, usados para validação automática ou arquivados para auditoria.
-
-## Estratégia de Validação
-
-1.  **Salvar o Arquivo:** Crie o arquivo `.claude/commands/migrar-adk.md` no seu projeto e cole o conteúdo acima.
-2.  **Executar o Comando:** Em uma sessão do `Claude Code` na raiz do seu projeto, execute o comando com os argumentos:
-    ```bash
-    /migrar-adk customer-service professor-virtual
-    ```
-3.  **Confirmar o Início:** Digite `INICIAR` quando o agente solicitar.
-4.  **Observar a Execução:** Verifique se o agente está gerando os comandos `!ls`, `!mkdir`, etc., corretamente para cada fase. Aprove ou rejeite suas ações.
-5.  **Verificar o Log Final:** No final do processo, o agente deve produzir um único bloco de código JSON. Copie este JSON e valide-o usando um linter de JSON para garantir que está bem-formado.
-
----
-
-## Research Query
-
+## Query
 crie relatório codebase expandido, detalhado, completo que mapeie e explique absolutamente todos os arquivos do diretório "/Users/institutorecriare/VSCodeProjects/projeto_professor/professor-virtual/professor_virtual".
 
-*Session: 8cf132c897258493528ceaaa30dba98e | Generated: 24/07/2025, 13:43:50*
-
-### Analysis Summary
-
+## Answer
 # Relatório Detalhado do Código: `professor-virtual/professor_virtual`
 
 Este relatório detalha a estrutura e a funcionalidade de todos os arquivos dentro do diretório `professor-virtual/professor_virtual`, fornecendo uma visão abrangente de seus propósitos, componentes internos e relacionamentos.
 
 ## Visão Geral da Arquitetura
+
+```mermaid
+graph TB
+  mainAgent["Agente Principal<br>Python<br>professor-virtual/professor_virtual/agent.py"]
+  config["Configuração<br>Python<br>professor-virtual/professor_virtual/config.py"]
+  prompts["Prompts<br>Python<br>professor-virtual/professor_virtual/prompts.py"]
+  entitiesDir["Entidades<br>Python Package<br>professor-virtual/professor_virtual/entities/"]
+  toolsDir["Ferramentas<br>Python Package<br>professor-virtual/professor_virtual/tools/"]
+  sharedLibsDir["Bibliotecas Compartilhadas<br>Python Package<br>professor-virtual/professor_virtual/shared_libraries/"]
+
+  mainAgent --> |"usa"| config
+  mainAgent --> |"usa"| prompts
+  mainAgent --> |"integra"| toolsDir
+  mainAgent --> |"utiliza"| sharedLibsDir
+  entitiesDir --> |"define estruturas para"| mainAgent
+```
+
 
 O diretório `professor-virtual/professor_virtual` encapsula a lógica central do agente "Professor Virtual". Ele é estruturado para modularizar diferentes aspectos do agente, incluindo sua configuração, prompts, definição de entidades, ferramentas e bibliotecas compartilhadas.
 
@@ -225,6 +39,63 @@ O diretório `professor-virtual/professor_virtual` encapsula a lógica central d
 *   **Bibliotecas Compartilhadas**: Contém utilitários e callbacks reutilizáveis que podem ser usados por diferentes partes do agente, localizadas em [shared_libraries/](professor-virtual/professor_virtual/shared_libraries).
 
 ## Detalhamento dos Arquivos e Diretórios
+
+```mermaid
+graph TB
+  subgraph Root Files
+    initPy["__init__.py<br>Python Package<br>professor-virtual/professor_virtual/__init__.py"]
+    agentPy["agent.py<br>Python Agent<br>professor-virtual/professor_virtual/agent.py"]
+    configPy["config.py<br>Configuration<br>professor-virtual/professor_virtual/config.py"]
+    promptsPy["prompts.py<br>Prompt Templates<br>professor-virtual/professor_virtual/prompts.py"]
+  end
+
+  subgraph Entities Directory
+    entitiesInit["__init__.py<br>Python Package<br>professor-virtual/professor_virtual/entities/__init__.py"]
+    customerPy["customer.py<br>Entity Definition<br>professor-virtual/professor_virtual/entities/customer.py"]
+  end
+
+  subgraph Shared Libraries Directory
+    sharedLibsInit["__init__.py<br>Python Package<br>professor-virtual/professor_virtual/shared_libraries/__init__.py"]
+    callbacksPy["callbacks.py<br>Callback Interfaces<br>professor-virtual/professor_virtual/shared_libraries/callbacks.py"]
+    subgraph Callbacks Subdirectory
+      callbacksDirInit["__init__.py<br>Python Package<br>professor-virtual/professor_virtual/shared_libraries/callbacks/__init__.py"]
+      afterToolDir["after_tool/<br>Callback Type<br>professor-virtual/professor_virtual/shared_libraries/callbacks/after_tool/"]
+      beforeAgentDir["before_agent/<br>Callback Type<br>professor-virtual/professor_virtual/shared_libraries/callbacks/before_agent/"]
+      beforeToolDir["before_tool/<br>Callback Type<br>professor-virtual/professor_virtual/shared_libraries/callbacks/before_tool/"]
+      lowercaseValueDir["lowercase_value/<br>Callback Type<br>professor-virtual/professor_virtual/shared_libraries/callbacks/lowercase_value/"]
+      rateLimitDir["rate_limit_callback/<br>Callback Type<br>professor-virtual/professor_virtual/shared_libraries/callbacks/rate_limit_callback/"]
+      validateCustomerIdDir["validate_customer_id/<br>Callback Type<br>professor-virtual/professor_virtual/shared_libraries/callbacks/validate_customer_id/"]
+    end
+  end
+
+  subgraph Tools Directory
+    toolsInit["__init__.py<br>Python Package<br>professor-virtual/professor_virtual/tools/__init__.py"]
+    toolsPy["tools.py<br>Tool Aggregator<br>professor-virtual/professor_virtual/tools/tools.py"]
+    analisarImagemDir["analisar_imagem_educacional/<br>Tool Module<br>professor-virtual/professor_virtual/tools/analisar_imagem_educacional/"]
+    analisarNecessidadeDir["analisar_necessidade_visual/<br>Tool Module<br>professor-virtual/professor_virtual/tools/analisar_necessidade_visual/"]
+    gerarAudioDir["gerar_audio_tts/<br>Tool Module<br>professor-virtual/professor_virtual/tools/gerar_audio_tts/"]
+    transcreverAudioDir["transcrever_audio/<br>Tool Module<br>professor-virtual/professor_virtual/tools/transcrever_audio/"]
+  end
+
+  agentPy --> |"usa"| configPy
+  agentPy --> |"usa"| promptsPy
+  agentPy --> |"integra"| toolsPy
+  agentPy --> |"utiliza"| callbacksPy
+  customerPy --> |"define estrutura para"| agentPy
+
+  callbacksPy --> |"base para"| afterToolDir
+  callbacksPy --> |"base para"| beforeAgentDir
+  callbacksPy --> |"base para"| beforeToolDir
+  callbacksPy --> |"base para"| lowercaseValueDir
+  callbacksPy --> |"base para"| rateLimitDir
+  callbacksPy --> |"base para"| validateCustomerIdDir
+
+  toolsPy --> |"agrega"| analisarImagemDir
+  toolsPy --> |"agrega"| analisarNecessidadeDir
+  toolsPy --> |"agrega"| gerarAudioDir
+  toolsPy --> |"agrega"| transcreverAudioDir
+```
+
 
 ### Arquivos Raiz
 
@@ -461,78 +332,4 @@ O diretório `professor-virtual/professor_virtual` encapsula a lógica central d
 *   **Relacionamentos Externos**: Chamado pelo agente principal quando a entrada de áudio precisa ser processada.
 
 ---
-
-## Research Query
-
-faltaram vários arquivos além de não ter criado o diagrama mermaid. Refaça com mais detalhemento.
-
-*Session: da8d32d6d00a59906646afb7a141d703 | Generated: 24/07/2025, 13:46:28*
-
-### Analysis Summary
-
-# Customer Service Codebase Analysis
-
-This report details the architecture and components of the **Customer Service** module, providing a structured overview of its functionalities, internal organization, and inter-component relationships.
-
-## High-Level Architecture
-
-The **Customer Service** module, located at [customer-service/](customer-service/), is designed to automate and assist with customer interactions. It primarily functions as an agent-based system, leveraging various tools and shared libraries to process customer requests, access information, and perform actions. Its core components include an **agent** responsible for orchestrating tasks, **prompts** for guiding the agent's behavior, **entities** for data modeling, **shared libraries** for common functionalities like callbacks, and a collection of specialized **tools** for interacting with external systems or performing specific operations.
-
-## Core Components
-
-### Agent Orchestration
-
-The central orchestrator of the customer service interactions is defined in [customer-service/customer_service/agent.py](customer-service/customer_service/agent.py). This file likely contains the main logic for the agent, including how it receives input, decides which tools to use, and generates responses.
-
-### Configuration Management
-
-Module-specific configurations are managed in [customer-service/customer_service/config.py](customer-service/customer_service/config.py). This file typically holds settings, API keys, or other parameters necessary for the module's operation.
-
-### Prompt Definitions
-
-The conversational prompts and instructions that guide the agent's behavior and responses are defined in [customer-service/customer_service/prompts.py](customer-service/customer_service/prompts.py). These prompts are crucial for shaping the agent's personality and interaction style.
-
-## Data Entities
-
-The **entities** directory, located at [customer-service/customer_service/entities/](customer-service/customer_service/entities/), defines the data structures or models used within the customer service domain.
-
-### Customer Entity
-
-The primary entity representing customer information is defined in [customer-service/customer_service/entities/customer.py](customer-service/customer_service/entities/customer.py). This file likely contains the class or data structure for `Customer` objects, including their attributes and methods.
-
-## Shared Libraries
-
-The **shared_libraries** directory, found at [customer-service/customer_service/shared_libraries/](customer-service/customer_service/shared_libraries/), houses reusable components and utilities that can be shared across different parts of the customer service module or even other agents.
-
-### Callbacks
-
-The **callbacks** sub-directory, located at [customer-service/customer_service/shared_libraries/callbacks/](customer-service/customer_service/shared_libraries/callbacks/), contains various callback functions that can be triggered at different stages of the agent's execution. The main entry point for callbacks is [customer-service/customer_service/shared_libraries/callbacks.py](customer-service/customer_service/shared_libraries/callbacks.py).
-
-Specific callback implementations include:
-
-*   **After Tool Callback**: [customer-service/customer_service/shared_libraries/callbacks/after_tool/after_tool_callback.py](customer-service/customer_service/shared_libraries/callbacks/after_tool/after_tool_callback.py) - Executed after a tool has been used.
-*   **Before Agent Callback**: [customer-service/customer_service/shared_libraries/callbacks/before_agent/before_agent_callback.py](customer-service/customer_service/shared_libraries/callbacks/before_agent/before_agent_callback.py) - Executed before the agent starts processing.
-*   **Before Tool Callback**: [customer-service/customer_service/shared_libraries/callbacks/before_tool/before_tool_callback.py](customer-service/customer_service/shared_libraries/callbacks/before_tool/before_tool_callback.py) - Executed before a tool is invoked.
-*   **Lowercase Value Callback**: [customer-service/customer_service/shared_libraries/callbacks/lowercase_value/lowercase_value.py](customer-service/customer_service/shared_libraries/callbacks/lowercase_value/lowercase_value.py) - A utility callback for converting values to lowercase.
-*   **Rate Limit Callback**: [customer-service/customer_service/shared_libraries/callbacks/rate_limit_callback/rate_limit_callback.py](customer-service/customer_service/shared_libraries/callbacks/rate_limit_callback/rate_limit_callback.py) - Handles rate limiting for tool usage or API calls.
-*   **Validate Customer ID Callback**: [customer-service/customer_service/shared_libraries/callbacks/validate_customer_id/validate_customer_id_callback.py](customer-service/customer_service/shared_libraries/callbacks/validate_customer_id/validate_customer_id_callback.py) - Validates customer identification.
-
-## Tools
-
-The **tools** directory, located at [customer-service/customer_service/tools/](customer-service/customer_service/tools/), contains a collection of specialized functions or modules that the agent can utilize to perform specific actions or retrieve information. The main entry point for tool definitions is [customer-service/customer_service/tools/tools.py](customer-service/customer_service/tools/tools.py).
-
-Each sub-directory within `tools/` represents a distinct tool:
-
-*   **Access Cart Information**: [customer-service/customer_service/tools/access_cart_information/access_cart_information.py](customer-service/customer_service/tools/access_cart_information/access_cart_information.py) - Provides functionality to retrieve details about a customer's shopping cart.
-*   **Approve Discount**: [customer-service/customer_service/tools/approve_discount/approve_discount.py](customer-service/customer_service/tools/approve_discount/approve_discount.py) - Enables the agent to approve discounts for customers.
-*   **Check Product Availability**: [customer-service/customer_service/tools/check_product_availability/check_product_availability.py](customer-service/customer_service/tools/check_product_availability/check_product_availability.py) - Allows checking the stock or availability of products.
-*   **Generate QR Code**: [customer-service/customer_service/tools/generate_qr_code/generate_qr_code.py](customer-service/customer_service/tools/generate_qr_code/generate_qr_code.py) - Generates QR codes for various purposes.
-*   **Get Available Planting Times**: [customer-service/customer_service/tools/get_available_planting_times/get_available_planting_times.py](customer-service/customer_service/tools/get_available_planting_times/get_available_planting_times.py) - Retrieves information about available planting schedules.
-*   **Get Product Recommendations**: [customer-service/customer_service/tools/get_product_recommendations/get_product_recommendations.py](customer-service/customer_service/tools/get_product_recommendations/get_product_recommendations.py) - Provides product suggestions based on customer preferences or history.
-*   **Modify Cart**: [customer-service/customer_service/tools/modify_cart/modify_cart.py](customer-service/customer_service/tools/modify_cart/modify_cart.py) - Allows modifications to the customer's shopping cart, such as adding or removing items.
-*   **Schedule Planting Service**: [customer-service/customer_service/tools/schedule_planting_service/schedule_planting_service.py](customer-service/customer_service/tools/schedule_planting_service/schedule_planting_service.py) - Facilitates scheduling services related to planting.
-*   **Send Call Companion Link**: [customer-service/customer_service/tools/send_call_companion_link/send_call_companion_link.py](customer-service/customer_service/tools/send_call_companion_link/send_call_companion_link.py) - Sends a link to a companion application or resource during a call.
-*   **Send Care Instructions**: [customer-service/customer_service/tools/send_care_instructions/send_care_instructions.py](customer-service/customer_service/tools/send_care_instructions/send_care_instructions.py) - Provides functionality to send care instructions for products or services.
-*   **Sync Ask For Approval**: [customer-service/customer_service/tools/sync_ask_for_approval/sync_ask_for_approval.py](customer-service/customer_service/tools/sync_ask_for_approval/sync_ask_for_approval.py) - Handles synchronous requests for approval.
-*   **Update Salesforce CRM**: [customer-service/customer_service/tools/update_salesforce_crm/update_salesforce_crm.py](customer-service/customer_service/tools/update_salesforce_crm/update_salesforce_crm.py) - Integrates with Salesforce CRM to update customer records.
-
+*Generated by [CodeViz.ai](https://codeviz.ai) on 24/07/2025, 13:46:30*
