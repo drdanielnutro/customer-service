@@ -23,9 +23,9 @@ from .shared_libraries.callbacks import (
     rate_limit_callback,
     before_agent,
     before_tool,
-    after_tool
+    after_tool,
 )
-from .tools.tools import (
+from .tools import (
     send_call_companion_link,
     approve_discount,
     sync_ask_for_approval,
