@@ -1,0 +1,13 @@
+[
+  {
+    "query": "oi,",
+    "expected_tool_use": [],
+    "reference": "Olá! Em que posso ajudar nos seus estudos hoje?"
+  },
+  {
+    "query": "pode explicar o que é uma fração?",
+    "expected_tool_use": [],
+    "reference": "Claro! Uma fração representa uma parte de um todo."
+  }
+]
+
