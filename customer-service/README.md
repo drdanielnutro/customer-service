@@ -82,6 +82,50 @@ The agent has access to the following tools:
 - `send_care_instructions(customer_id: str, plant_type: str, delivery_method: str) -> dict`: Sends plant care information.
 - `generate_qr_code(customer_id: str, discount_value: float, discount_type: str, expiration_days: int) -> dict`: Creates a discount QR code.
 
+## Directory Structure
+
+The refactored project follows a modular layout:
+
+```text
+customer_service/
+├── __init__.py
+├── agent.py
+├── config.py
+├── entities/
+│   ├── __init__.py
+│   └── customer.py
+├── prompts.py
+├── shared_libraries/
+│   └── callbacks/
+│       ├── __init__.py
+│       ├── after_tool/after_tool_callback.py
+│       ├── before_agent/before_agent_callback.py
+│       ├── before_tool/before_tool_callback.py
+│       ├── lowercase_value/lowercase_value.py
+│       ├── rate_limit_callback/rate_limit_callback.py
+│       └── validate_customer_id/validate_customer_id_callback.py
+├── tools/
+│   ├── __init__.py
+│   ├── access_cart_information/access_cart_information.py
+│   ├── approve_discount/approve_discount.py
+│   ├── check_product_availability/check_product_availability.py
+│   ├── generate_qr_code/generate_qr_code.py
+│   ├── get_available_planting_times/get_available_planting_times.py
+│   ├── get_product_recommendations/get_product_recommendations.py
+│   ├── modify_cart/modify_cart.py
+│   ├── schedule_planting_service/schedule_planting_service.py
+│   ├── send_call_companion_link/send_call_companion_link.py
+│   ├── send_care_instructions/send_care_instructions.py
+│   └── sync_ask_for_approval/sync_ask_for_approval.py
+```
+
+### Import Examples
+
+```python
+from customer_service.tools.modify_cart import modify_cart
+from customer_service.shared_libraries.callbacks.rate_limit_callback import rate_limit_callback
+```
+
 ## Setup and Installations
 
 ### Prerequisites
