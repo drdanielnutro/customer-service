@@ -2,7 +2,7 @@
 name = "professor-virtual"
 version = "0.1.0"
 description = "virtual teacher demo using Agent Development Kit"
-authors = ["Google Educational Team <education@example.com>"]
+authors = ["Instituto Recriare <contato@institutorecriare.com>"]
 license = "Apache License 2.0"
 readme = "README.md"
 
