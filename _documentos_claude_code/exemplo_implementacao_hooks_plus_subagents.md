@@ -1,9 +1,9 @@
 ### Visão geral — o que vamos montar
 
-Você terá **duas *sub-agents*** ( `task_creator` e `task_validator` ) e **um *hook* PostToolUse** que dispara automaticamente um *shell script* sempre que o `task_creator` rodar. O script:
+Você terá **duas *sub-agents*** ( `task-creator` e `task-validator` ) e **um *hook* PostToolUse** que dispara automaticamente um *shell script* sempre que o `task-creator` rodar. O script:
 
-1. **Detecta** que o sub-agent que acabou de rodar foi o `task_creator`;
-2. **Invoca** o `task_validator` via CLI para conferir se a nova tarefa em `tasks.json` está coerente com `descricao_tarefas.md`;
+1. **Detecta** que o sub-agent que acabou de rodar foi o `task-creator`;
+2. **Valida** diretamente se a nova tarefa em `tasks.json` está coerente com `descricao_tarefas.md` (sem invocar outro subagente);
 3. **Bloqueia ou libera** o fluxo de trabalho com base no resultado, devolvendo JSON ou exit‐codes conforme a especificação oficial.
 
 > O gatilho 100 % determinístico vem do hook (não de prompts condicionais), pois *hooks* executam antes/depois de cada chamada de ferramenta conforme declarado na doc oficial.
@@ -18,8 +18,8 @@ my-project/
 ├─ tasks.json
 └─ .claude/
    ├─ agents/
-   │  ├─ task_creator.md
-   │  └─ task_validator.md
+   │  ├─ task-creator.md
+   │  └─ task-validator.md
    ├─ hooks/
    │  └─ validate-task.sh
    └─ settings.json
@@ -47,11 +47,11 @@ my-project/
 }
 ```
 
-### 2.3 `agents/task_creator.md`
+### 2.3 `agents/task-creator.md`
 
 ```markdown
 ---
-name: task_creator
+name: task-creator
 description: |
   Gera uma task ou subtask em tasks.json **usando PROATIVAMENTE** a próxima
   linha não marcada de descricao_tarefas.md. Depois de escrever, informe:
@@ -65,11 +65,11 @@ com o esquema de `tasks.json` e grave usando o Write/Edit. Ao terminar,
 **sempre** escreva a frase exata: `TASK <ID> criada.` (exemplo: TASK TASK-001 criada.)
 ```
 
-### 2.4 `agents/task_validator.md`
+### 2.4 `agents/task-validator.md`
 
 ```markdown
 ---
-name: task_validator
+name: task-validator
 description: |
   Valida que a tarefa recém-adicionada em tasks.json está coerente com a
   linha correspondente em descricao_tarefas.md. Use PROATIVAMENTE quando
@@ -89,34 +89,76 @@ Devolva **apenas** "OK" ou "FALHA:<motivo>".
 ```bash
 #!/usr/bin/env bash
 # Hook para PostToolUse matcher=Task
+# Valida tasks sem invocar subagentes (conforme documentação)
 set -euo pipefail
 
 read -r INPUT_JSON   # lê STDIN enviado pelo hook
-SUBAGENT=$(jq -r '.tool_input.subagent_name // empty' <<<"$INPUT_JSON")
 
-# Só reage a finalização do task_creator
-if [[ "$SUBAGENT" != "task_creator" ]]; then
+# NOTA: O campo exato pode variar. Use 'claude --debug' para verificar.
+# Possibilidades: tool_input.subagent_name, tool_input.task_name, etc.
+SUBAGENT=$(jq -r '.tool_input.subagent_name // .tool_input.task_name // empty' <<<"$INPUT_JSON")
+
+# Só reage a finalização do task-creator
+if [[ "$SUBAGENT" != "task-creator" ]]; then
   exit 0            # nada a fazer para outros sub-agents
 fi
 
-# Invoca o validador e captura stdout
-VALIDATION=$(claude "Use the task_validator sub agent to validar última tarefa")
+# Validação direta dos arquivos (sem invocar outro subagente)
+# Busca a última task adicionada em tasks.json
+LAST_TASK=$(jq -r '.tasks[-1] // empty' "$CLAUDE_PROJECT_DIR/tasks.json" 2>/dev/null)
+if [[ -z "$LAST_TASK" ]]; then
+  echo "Nenhuma task encontrada em tasks.json" >&2
+  exit 1
+fi
 
-if [[ "$VALIDATION" =~ ^OK ]]; then
-  # Tudo certo – permite sequência normal
+# Extrai informações da última task
+TASK_ID=$(jq -r '.id // empty' <<<"$LAST_TASK")
+TASK_TITLE=$(jq -r '.title // empty' <<<"$LAST_TASK")
+
+if [[ -z "$TASK_ID" ]] || [[ -z "$TASK_TITLE" ]]; then
+  # Falha na estrutura → bloqueia com feedback
+  jq -n '{ "decision":"block", "reason":"FALHA: Task mal formada - faltam campos id ou title" }'
+  exit 0
+fi
+
+# Verifica se a task existe em descricao_tarefas.md
+if grep -q "^- \[.\] $TASK_ID:" "$CLAUDE_PROJECT_DIR/descricao_tarefas.md"; then
+  # Extrai o título do arquivo MD
+  MD_LINE=$(grep "^- \[.\] $TASK_ID:" "$CLAUDE_PROJECT_DIR/descricao_tarefas.md")
+  MD_TITLE=$(echo "$MD_LINE" | sed "s/^- \[.\] $TASK_ID: //")
+  
+  # Compara títulos
+  if [[ "$TASK_TITLE" != "$MD_TITLE" ]]; then
+    jq -n --arg id "$TASK_ID" --arg expected "$MD_TITLE" --arg actual "$TASK_TITLE" \
+       '{ "decision":"block", "reason":("FALHA: Título da task " + $id + " não coincide. Esperado: \"" + $expected + "\", Atual: \"" + $actual + "\"") }'
+    exit 0
+  fi
+  
+  # Verifica se foi marcada como concluída
+  if ! grep -q "^- \[x\] $TASK_ID:" "$CLAUDE_PROJECT_DIR/descricao_tarefas.md"; then
+    jq -n --arg id "$TASK_ID" \
+       '{ "decision":"block", "reason":("FALHA: Task " + $id + " não foi marcada como concluída em descricao_tarefas.md") }'
+    exit 0
+  fi
+  
+  # Tudo OK
   exit 0
 else
-  # Algo falhou → bloqueia e devolve feedback automatizado p/ Claude
-  jq -n --arg msg "$VALIDATION" \
-     '{ "decision":"block", "reason":$msg }'
-  exit 0            # JSON já foi impresso; Claude recebe e tenta corrigir
+  # Task não encontrada no MD
+  jq -n --arg id "$TASK_ID" \
+     '{ "decision":"block", "reason":("FALHA: Task " + $id + " não encontrada em descricao_tarefas.md") }'
+  exit 0
 fi
 ```
 
 > Notes
 >
 > * O script recebe via STDIN o payload `PostToolUse` (estrutura oficial).
-> * A chave `subagent_name` costuma aparecer em `tool_input` dos *Task* calls (use `claude --debug` num teste para confirmar o campo exato).
+> * **IMPORTANTE**: O campo que identifica o subagente pode variar entre versões. Use `claude --debug` para verificar o payload real. Possíveis campos incluem:
+>   - `tool_input.subagent_name`
+>   - `tool_input.task_name`
+>   - Outros campos específicos da versão
+> * O script já tenta múltiplos campos como fallback, mas você deve confirmar qual é usado em sua versão.
 > * Devolver JSON com `"decision":"block"` em `PostToolUse` faz Claude reconsiderar a saída anterior.
 
 Torne o script executável:
@@ -155,7 +197,7 @@ Usamos `Task` como *matcher* porque é o nome do tool invocado por qualquer sub-
 
 ```
 ┌───────────────┐
-│  Usuário/LLM  │  →  chama task_creator
+│  Usuário/LLM  │  →  chama task-creator
 └───────────────┘
           │        (gera TASK-001, imprime "TASK TASK-001 criada.")
           ▼
@@ -164,22 +206,22 @@ Usamos `Task` como *matcher* porque é o nome do tool invocado por qualquer sub-
           ▼
      validate-task.sh  ← matcher "Task"
           │
-          │-- se subagent ≠ task_creator → exit 0
+          │-- se subagent ≠ task-creator → exit 0
           │
-          ├─ se task_creator:
-          │     • chama task_validator
-          │     • recebe "OK" ou "FALHA: …"
+          ├─ se task-creator:
+          │     • valida diretamente os arquivos
+          │     • determina "OK" ou "FALHA: …"
           │
           ├─ "OK" → exit 0 (Claude continua)
           │
           └─ "FALHA" → imprime JSON {"decision":"block", …}
-                       (Claude vê o motivo, pede ajuste ao task_creator)
+                       (Claude vê o motivo, pede ajuste ao task-creator)
 ```
 
 Quando tudo passa, você simplesmente manda novamente:
 
 ```
-> Use the task_creator sub agent to continuar criando tarefas
+> Use the task-creator sub agent to continuar criando tarefas
 ```
 
 e o ciclo prossegue até esgotar o backlog.

@@ -32,7 +32,7 @@ Use the adk-migration-executor agent to migrate customer-service to professor-vi
 Use the project-data-architect agent to convert ERROS_MIGRACAO_DETALHADOS.md into tasks.json
 ```
 
-#### 3. ✅ **tasks-json-validator** (Red)
+#### 3. ✅ **tutorial-tasks-validator** (Red)
 **Purpose**: Validate completeness of tasks.json against source documents
 **Use when**:
 - After project-data-architect creates tasks.json
@@ -41,7 +41,7 @@ Use the project-data-architect agent to convert ERROS_MIGRACAO_DETALHADOS.md int
 
 **Example invocation**:
 ```
-Use the tasks-json-validator agent to verify tasks.json matches ERROS_MIGRACAO_DETALHADOS.md
+Use the tutorial-tasks-validator agent to verify tasks.json matches ERROS_MIGRACAO_DETALHADOS.md
 ```
 
 #### 4. 🪝 **claude-code-hooks-expert** (Available via Task tool)
@@ -64,7 +64,7 @@ Use the tasks-json-validator agent to verify tasks.json matches ERROS_MIGRACAO_D
 Always validate after creation:
 ```
 1. project-data-architect → creates tasks.json
-2. tasks-json-validator → validates completeness
+2. tutorial-tasks-validator → validates completeness
 ```
 
 ### Pattern 2: Migrate → Verify
@@ -84,18 +84,18 @@ For new workflows:
 
 ## DECISION MATRIX
 
-| User Intent | Primary Agent | Follow-up Agent |
-|------------|--------------|-----------------|
-| "Convert this document to tasks" | project-data-architect | tasks-json-validator |
-| "Migrate this project" | adk-migration-executor | - |
-| "Create a workflow for X" | claude-subagent-architect | claude-code-hooks-expert |
-| "Validate this tasks.json" | tasks-json-validator | - |
-| "Automate this process" | claude-code-hooks-expert | - |
+| User Intent                      | Primary Agent             | Follow-up Agent          |
+| -------------------------------- | ------------------------- | ------------------------ |
+| "Convert this document to tasks" | project-data-architect    | tutorial-tasks-validator |
+| "Migrate this project"           | adk-migration-executor    | -                        |
+| "Create a workflow for X"        | claude-subagent-architect | claude-code-hooks-expert |
+| "Validate this tasks.json"       | tutorial-tasks-validator  | -                        |
+| "Automate this process"          | claude-code-hooks-expert  | -                        |
 
 ## VALIDATION PROTOCOLS
 
 ### After project-data-architect:
-1. **Always** run tasks-json-validator
+1. **Always** run tutorial-tasks-validator
 2. Check for 100% coverage
 3. Verify technical details preserved
 
@@ -117,8 +117,8 @@ When chaining subagents, provide clear context:
 First, I'll use project-data-architect to structure your tasks.
 [Run project-data-architect]
 
-Now I'll validate the output using tasks-json-validator to ensure completeness.
-[Run tasks-json-validator with reference to source document]
+Now I'll validate the output using tutorial-tasks-validator to ensure completeness.
+[Run tutorial-tasks-validator with reference to source document]
 ```
 
 ## ERROR HANDLING
@@ -136,7 +136,7 @@ Based on user actions, suggest appropriate subagents:
 - User provides error document → Suggest project-data-architect
 - User mentions migration → Suggest adk-migration-executor
 - User wants automation → Suggest claude-code-hooks-expert
-- Tasks.json was created → Automatically use tasks-json-validator
+- Tasks.json was created → Automatically use tutorial-tasks-validator
 
 ## HOOK INTEGRATION
 
@@ -161,7 +161,7 @@ For deterministic workflows, combine hooks with subagents:
 "Use project-data-architect to analyze [document] and create tasks.json"
 
 # Validate tasks
-"Use tasks-json-validator to verify tasks.json against [source]"
+"Use tutorial-tasks-validator to verify tasks.json against [source]"
 
 # Migrate project
 "Use adk-migration-executor to migrate [source] to [target]"

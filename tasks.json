@@ -2,369 +2,131 @@
   "tasks": [
     {
       "id": 1,
-      "title": "Erros de Imports Quebrados",
-      "description": "Corrigir todos os imports que referenciam 'customer_service' ao invés de 'professor_virtual' e classes incorretas",
-      "status": "done",
-      "dependencies": [],
+      "title": "Corrigir inconsistências de configuração em config.py",
+      "description": "Ajustar a configuração do professor virtual para alinhar com as especificações da arquitetura, incluindo nome do agente e configurações de geração de conteúdo",
       "priority": "high",
-      "details": "Imports quebrados impedem completamente o funcionamento do sistema. Total de 3 arquivos afetados com imports incorretos que precisam ser corrigidos urgentemente.",
-      "testStrategy": "Executar importação de cada módulo afetado e verificar se não há erros de ModuleNotFoundError ou ImportError",
+      "status": "pending",
+      "dependencies": [],
+      "details": "Arquivo: professor-virtual/professor_virtual/config.py. Referência: desenvolvedor/architecture.json. Corrigir nome do agente e adicionar generate_content_config.",
+      "testStrategy": "Verificar se as configurações carregam corretamente e se o agente é inicializado com os parâmetros esperados",
       "subtasks": [
         {
-          "id": 1,
-          "title": "Corrigir import em callbacks.py",
-          "description": "Atualizar import de Customer para Student no arquivo principal de callbacks",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinha: 28\nErro atual: from customer_service.entities.customer import Customer\nCorreção: from professor_virtual.entities.student import Student\nJustificativa: O módulo customer_service não existe no projeto professor-virtual",
-          "status": "done",
-          "parentTaskId": 1
+          "id": 11,
+          "parentTaskId": 1,
+          "title": "Corrigir nome do agente de 'professor_virtual_agent' para 'professor_virtual'",
+          "description": "O campo 'name' da configuração do agente deve ser 'professor_virtual' conforme especificado na arquitetura",
+          "details": "Alterar: name: str = Field(default=\"professor_virtual_agent\") para name: str = Field(default=\"professor_virtual\"). Justificativa: No arquivo de arquitetura o campo 'name' é definido como 'professor_virtual' (architecture.json:8-10).",
+          "testStrategy": "Verificar se Config().agent_settings.name retorna 'professor_virtual'"
         },
         {
-          "id": 2,
-          "title": "Corrigir import em before_agent_callback.py",
-          "description": "Atualizar import de Customer para Student no callback before_agent",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_agent/before_agent_callback.py\nLinha: 3\nErro atual: from customer_service.entities.customer import Customer\nCorreção: from professor_virtual.entities.student import Student",
-          "status": "done",
-          "parentTaskId": 1
-        },
-        {
-          "id": 3,
-          "title": "Corrigir import em validate_customer_id_callback.py",
-          "description": "Atualizar import de Customer para Student no callback de validação",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/validate_customer_id/validate_customer_id_callback.py\nLinha: 5\nErro atual: from customer_service.entities.customer import Customer\nCorreção: from professor_virtual.entities.student import Student",
-          "status": "done",
-          "parentTaskId": 1
+          "id": 12,
+          "parentTaskId": 1,
+          "title": "Adicionar campo generate_content_config na classe Config",
+          "description": "Incluir configurações de geração de conteúdo com temperatura, tokens máximos e MIME type",
+          "details": "Adicionar após agent_settings: generate_content_config: dict = Field(default={\"temperature\": 0.7, \"max_output_tokens\": 1000, \"response_mime_type\": \"text/plain\"}). Justificativa: A arquitetura especifica generate_content_config (architecture.json:17-21).",
+          "testStrategy": "Verificar se Config().generate_content_config contém os valores padrão esperados"
         }
       ]
     },
     {
       "id": 2,
-      "title": "Nomenclatura Incorreta de Arquivo",
-      "description": "Renomear arquivo que ainda usa nomenclatura do sistema antigo",
-      "status": "done",
-      "dependencies": [
-        1
-      ],
+      "title": "Corrigir inicialização do agente em agent.py",
+      "description": "Ajustar a criação do root_agent para usar instruction provider dinâmico e configurações de geração de conteúdo",
       "priority": "high",
-      "details": "Arquivo mantém nome antigo mas contém classe nova, causando confusão e possíveis erros de importação",
-      "testStrategy": "Verificar se o arquivo foi renomeado corretamente e se todas as referências a ele foram atualizadas",
+      "status": "pending",
+      "dependencies": [1],
+      "details": "Arquivo: professor-virtual/professor_virtual/agent.py. Referência: desenvolvedor/instruction_providers.py. Substituir instrução estática por provider dinâmico e adicionar generate_content_config.",
+      "testStrategy": "Verificar se o agente é criado com instruction provider como função e se generate_content_config é passado",
       "subtasks": [
         {
-          "id": 1,
-          "title": "Renomear customer.py para student.py",
-          "description": "Renomear arquivo de entidade que ainda usa nomenclatura antiga",
-          "dependencies": [],
-          "details": "Arquivo atual: professor_virtual/entities/customer.py\nNovo nome: professor_virtual/entities/student.py\nProblema: O arquivo mantém o nome customer.py mas contém a classe Student",
-          "status": "done",
-          "parentTaskId": 2
+          "id": 21,
+          "parentTaskId": 2,
+          "title": "Substituir instrução estática por instruction provider dinâmico",
+          "description": "Usar professor_instruction_provider em vez de INSTRUCTION fixa",
+          "details": "Alterar: global_instruction=GLOBAL_INSTRUCTION, instruction=INSTRUCTION para global_instruction=\"\", instruction=professor_instruction_provider. Justificativa: A instrução deve ser gerada dinamicamente (instruction_providers.py:10-74).",
+          "testStrategy": "Verificar se instruction é uma função callable e não uma string"
+        },
+        {
+          "id": 22,
+          "parentTaskId": 2,
+          "title": "Adicionar generate_content_config ao construtor do Agent",
+          "description": "Passar configurações de geração de conteúdo do config para o agente",
+          "details": "Adicionar após tools: generate_content_config=configs.generate_content_config. Justificativa: A arquitetura prevê o uso de generate_content_config (architecture.json:17-21).",
+          "testStrategy": "Verificar se o agente recebe generate_content_config como parâmetro"
         }
       ]
     },
     {
       "id": 3,
-      "title": "Funções e Variáveis com Nomenclatura Incorreta",
-      "description": "Atualizar todas as funções e variáveis que ainda referenciam 'customer' ao invés de 'student'",
-      "status": "done",
-      "dependencies": [
-        1,
-        2
-      ],
+      "title": "Atualizar sistema de prompts em prompts.py",
+      "description": "Substituir constante INSTRUCTION fixa por referência ao instruction provider dinâmico",
       "priority": "high",
-      "details": "Múltiplas funções e variáveis em 4 arquivos diferentes precisam ser renomeadas para refletir o contexto educacional",
-      "testStrategy": "Executar busca global por 'customer' no código e verificar se todas as ocorrências foram substituídas apropriadamente",
+      "status": "pending",
+      "dependencies": [],
+      "details": "Arquivo: professor-virtual/professor_virtual/prompts.py. Referência: desenvolvedor/instruction_providers.py. Importar e usar professor_instruction_provider.",
+      "testStrategy": "Verificar se INSTRUCTION é uma função e não uma string constante",
       "subtasks": [
         {
-          "id": 1,
-          "title": "Refatorar função validate_customer_id em callbacks.py",
-          "description": "Renomear função e atualizar toda sua lógica interna de customer para student",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinhas: 89-114\nFunção atual: validate_customer_id\nNova função: validate_student_id\nAlterações necessárias:\n- Nome da função\n- Parâmetro customer_id → student_id\n- Variável 'customer_profile' → 'student_profile'\n- Classe Customer → Student\n- Atributo c.customer_id → s.student_id\n- Todas as mensagens de erro",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 2,
-          "title": "Atualizar referências em before_tool de callbacks.py",
-          "description": "Corrigir validação de customer_id para student_id na função before_tool",
-          "dependencies": [
-            1
-          ],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinhas: 137-143\nAlterações:\n- Verificar 'customer_id' in args → 'student_id' in args\n- Chamar validate_customer_id → validate_student_id\n- Atualizar comentários",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 3,
-          "title": "Corrigir before_agent em callbacks.py",
-          "description": "Atualizar lógica de inicialização do perfil do estudante",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinhas: 186-189\nAlterações:\n- 'customer_profile' → 'student_profile'\n- Customer.get_customer → Student.get_student",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 4,
-          "title": "Refatorar before_agent_callback.py",
-          "description": "Atualizar callback before_agent para usar nomenclatura de student",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_agent/before_agent_callback.py\nLinhas: 11-14\nAlterações:\n- 'customer_profile' → 'student_profile'\n- Customer.get_customer → Student.get_student",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 5,
-          "title": "Refatorar completamente validate_customer_id_callback.py",
-          "description": "Renomear arquivo e refatorar todo o conteúdo para contexto de student",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/validate_customer_id/validate_customer_id_callback.py\nNovo nome: validate_student_id_callback.py\nLinhas: 10-35 (todo o arquivo)\nSubstituir todas as referências de customer para student",
-          "status": "done",
-          "parentTaskId": 3
-        },
-        {
-          "id": 6,
-          "title": "Atualizar before_tool_callback.py",
-          "description": "Corrigir referências a customer_id no callback before_tool",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_tool/before_tool_callback.py\nLinhas: 18-23\nSubstituir customer_id por student_id",
-          "status": "done",
-          "parentTaskId": 3
+          "id": 31,
+          "parentTaskId": 3,
+          "title": "Importar e usar professor_instruction_provider",
+          "description": "Substituir definição estática de INSTRUCTION por provider dinâmico",
+          "details": "Substituir INSTRUCTION = \"\"\"...\"\"\" por: from .instruction_providers import professor_instruction_provider; INSTRUCTION = professor_instruction_provider. Justificativa: Providers definem geração dinâmica de instruções (instruction_providers.py:10-74).",
+          "testStrategy": "Verificar se INSTRUCTION é importado corretamente e é callable"
         }
       ]
     },
     {
       "id": 4,
-      "title": "Lógica de E-commerce Residual",
-      "description": "Remover completamente toda lógica relacionada a e-commerce que não faz sentido no contexto educacional",
-      "status": "done",
-      "dependencies": [
-        3
-      ],
-      "priority": "medium",
-      "details": "Múltiplos arquivos contêm lógica de desconto, carrinho de compras e aprovações que são irrelevantes para um sistema educacional",
-      "testStrategy": "Verificar se todas as referências a desconto, carrinho, aprovações de e-commerce foram removidas",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Remover lógicas de e-commerce em callbacks.py",
-          "description": "Eliminar todas as lógicas de desconto e carrinho do arquivo principal de callbacks",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nRemover:\n- Linhas 147-154: Lógica de aprovação de desconto (sync_ask_for_approval)\n- Linhas 156-161: Lógica de modificação de carrinho (modify_cart)\n- Linhas 168-178: Callbacks after_tool com lógica de desconto",
-          "status": "done",
-          "parentTaskId": 4
-        },
-        {
-          "id": 2,
-          "title": "Limpar after_tool_callback.py",
-          "description": "Remover lógica de desconto e carrinho do callback after_tool",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/after_tool/after_tool_callback.py\nLinhas: 13-23\nRemover toda a lógica de desconto e carrinho",
-          "status": "done",
-          "parentTaskId": 4
-        },
-        {
-          "id": 3,
-          "title": "Limpar before_tool_callback.py",
-          "description": "Remover lógica de aprovação e carrinho do callback before_tool",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_tool/before_tool_callback.py\nLinhas: 28-43\nRemover lógica de aprovação de desconto e modificação de carrinho",
-          "status": "done",
-          "parentTaskId": 4
-        }
-      ]
-    },
-    {
-      "id": 5,
-      "title": "Comentários e Docstrings Desatualizados",
-      "description": "Atualizar toda documentação interna que ainda referencia o sistema antigo",
-      "status": "done",
-      "dependencies": [
-        1,
-        2,
-        3,
-        4
-      ],
-      "priority": "low",
-      "details": "Documentação desatualizada causa confusão e dificulta manutenção",
-      "testStrategy": "Revisar todos os arquivos modificados e verificar se a documentação reflete o contexto educacional",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Atualizar docstring em callbacks.py",
-          "description": "Corrigir docstring que referencia FOMC Research Agent",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinha: 15\nAtual: 'Callback functions for FOMC Research Agent.'\nNovo: 'Callback functions for Professor Virtual Educational Agent.'",
-          "status": "done",
-          "parentTaskId": 5
-        },
-        {
-          "id": 2,
-          "title": "Atualizar docstring em customer.py",
-          "description": "Corrigir docstring do módulo de entidade",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/entities/customer.py\nLinha: 1\nAtual: 'Customer entity module.'\nNovo: 'Student entity module.'",
-          "status": "done",
-          "parentTaskId": 5
-        }
-      ]
-    },
-    {
-      "id": 6,
-      "title": "Estrutura de Diretórios Inconsistente",
-      "description": "Renomear diretórios que ainda usam nomenclatura do sistema antigo",
-      "status": "done",
-      "dependencies": [
-        3
-      ],
-      "priority": "medium",
-      "details": "Diretório ainda referencia 'customer' causando inconsistência na estrutura",
-      "testStrategy": "Verificar se o diretório foi renomeado e todas as importações atualizadas",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Renomear diretório validate_customer_id",
-          "description": "Renomear diretório de callback para refletir contexto de student",
-          "dependencies": [],
-          "details": "Diretório atual: professor_virtual/shared_libraries/callbacks/validate_customer_id/\nNovo nome: professor_virtual/shared_libraries/callbacks/validate_student_id/",
-          "status": "done",
-          "parentTaskId": 6
-        }
-      ]
-    },
-    {
-      "id": 7,
-      "title": "Imports e Exports Quebrados",
-      "description": "Corrigir imports e exports em arquivos __init__.py que referenciam módulos renomeados",
-      "status": "done",
-      "dependencies": [
-        2,
-        3,
-        6
-      ],
+      "title": "Corrigir implementação de tools em tools.py",
+      "description": "Ajustar classes de resultado para usar dataclasses, corrigir fator de pontuação e adicionar funções auxiliares ausentes",
       "priority": "high",
-      "details": "Arquivos __init__.py precisam ser atualizados para refletir novos nomes de módulos e funções",
-      "testStrategy": "Importar os módulos e verificar se não há erros de importação",
+      "status": "pending",
+      "dependencies": [],
+      "details": "Arquivo: professor-virtual/professor_virtual/tools/tools.py. Referência: desenvolvedor/implementation.py. Converter para dataclasses, corrigir pontuação e adicionar funções.",
+      "testStrategy": "Verificar se classes são dataclasses, se fator é 0.15 e se extrair_contexto_educacional existe",
       "subtasks": [
         {
-          "id": 1,
-          "title": "Atualizar __init__.py de shared_libraries",
-          "description": "Corrigir imports e exports no __init__.py principal de shared_libraries",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/__init__.py\nLinhas: 16 e 25\nAtual: from .callbacks.validate_customer_id import validate_customer_id\nNovo: from .callbacks.validate_student_id import validate_student_id\nE atualizar no array de exports",
-          "status": "done",
-          "parentTaskId": 7
+          "id": 41,
+          "parentTaskId": 4,
+          "title": "Converter AnaliseVisualResult para dataclass",
+          "description": "Usar @dataclass em vez de classe comum com __init__",
+          "details": "Substituir class AnaliseVisualResult com __init__ por: @dataclass class AnaliseVisualResult com campos como atributos. Justificativa: Documento define como @dataclass (implementation.py:18-23).",
+          "testStrategy": "Verificar se AnaliseVisualResult é uma dataclass com campos corretos"
         },
         {
-          "id": 2,
-          "title": "Atualizar __init__.py de callbacks",
-          "description": "Corrigir imports e exports no __init__.py de callbacks",
-          "dependencies": [],
-          "details": "Arquivo: professor_virtual/shared_libraries/callbacks/__init__.py\nLinhas: 2 e 10\nAtual: from .validate_customer_id import validate_customer_id\nNovo: from .validate_student_id import validate_student_id\nE atualizar no array de exports",
-          "status": "done",
-          "parentTaskId": 7
-        }
-      ]
-    },
-    {
-      "id": 8,
-      "title": "Hardcoded Values Inadequados",
-      "description": "Substituir valores hardcoded por implementação dinâmica apropriada",
-      "status": "done",
-      "dependencies": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7
-      ],
-      "priority": "medium",
-      "details": "ID '123' está hardcoded em múltiplos lugares, precisa ser substituído por sistema dinâmico",
-      "testStrategy": "Verificar se o sistema de identificação de estudantes funciona dinamicamente",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Implementar sistema dinâmico de ID de estudante",
-          "description": "Substituir ID hardcoded '123' por sistema que obtém ID dinamicamente",
-          "dependencies": [],
-          "details": "Localização: Múltiplos arquivos\nProblema: Uso de '123' como ID fixo\nSolução: Implementar sistema que obtém ID do contexto da sessão ou parâmetros de entrada",
-          "status": "done",
-          "parentTaskId": 8
-        }
-      ]
-    },
-    {
-      "id": 9,
-      "title": "Revisar Ferramentas para Contexto Educacional",
-      "description": "Analisar todas as ferramentas (tools) disponíveis para o agente para garantir que suas funcionalidades, nomes e descrições estejam alinhados com o domínio do 'Professor Virtual', removendo ou adaptando qualquer resquício do contexto de e-commerce.",
-      "status": "done",
-      "dependencies": [
-        1,
-        2,
-        3,
-        4,
-        6,
-        7
-      ],
-      "priority": "medium",
-      "details": "Esta é uma tarefa de revisão funcional. O objetivo é garantir que, após as correções técnicas, a lógica de negócio do agente esteja correta. Exemplo: uma ferramenta 'get_student_grades' faz mais sentido que uma 'get_order_history'. É preciso verificar cada ferramenta definida para o agente.",
-      "testStrategy": "Criar uma lista de todas as ferramentas disponíveis. Para cada uma, validar seu nome, descrição e parâmetros contra os requisitos do projeto 'Professor Virtual'. Documentar as ferramentas que precisam de alteração ou remoção."
-    },
-    {
-      "id": 10,
-      "title": "Implementar Testes Unitários para Validar Correções",
-      "description": "Criar um conjunto de testes unitários para as funções e módulos críticos que foram refatorados, garantindo que as correções funcionam como esperado e prevenindo regressões futuras.",
-      "status": "done",
-      "dependencies": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
-      ],
-      "priority": "medium",
-      "details": "Focar em criar testes para: a nova entidade 'Student', a função 'validate_student_id', e os callbacks (before_agent, before_tool, after_tool) para garantir que a lógica residual de e-commerce foi completamente removida e a nova lógica de estudante está correta. Usar um framework como pytest.",
-      "testStrategy": "Executar a suíte de testes (ex: `pytest`) e garantir que todos os testes passem. A cobertura de código (code coverage) para os módulos modificados deve atingir um patamar pré-definido (ex: >80%).",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Criar testes para a entidade Student",
-          "description": "Desenvolver testes unitários para a classe Student, validando seus atributos e métodos, como 'get_student'.",
-          "dependencies": [],
-          "details": "Arquivo alvo: professor_virtual/entities/student.py",
-          "status": "done",
-          "parentTaskId": 10
+          "id": 42,
+          "parentTaskId": 4,
+          "title": "Adicionar classe AnaliseImagemResult ausente",
+          "description": "Implementar dataclass para estruturar resultado de análise de imagem",
+          "details": "Adicionar: @dataclass class AnaliseImagemResult com campos tipo_conteudo, elementos_detectados, contexto_educacional, qualidade_adequada, sugestao_acao. Justificativa: Classe definida em implementation.py:26-33 mas ausente no projeto.",
+          "testStrategy": "Verificar se AnaliseImagemResult existe como dataclass com todos os campos"
         },
         {
-          "id": 2,
-          "title": "Criar testes para a função validate_student_id",
-          "description": "Desenvolver testes unitários para a função 'validate_student_id', cobrindo casos de sucesso (ID válido) e falha (ID inválido, perfil não encontrado).",
-          "dependencies": [],
-          "details": "Arquivo alvo: professor_virtual/shared_libraries/callbacks.py",
-          "status": "done",
-          "parentTaskId": 10
+          "id": 43,
+          "parentTaskId": 4,
+          "title": "Corrigir fator de pontuação visual de 0.2 para 0.15",
+          "description": "Ajustar cálculo de pontuação em analisar_necessidade_visual",
+          "details": "Alterar: pontuacao_visual += len(matches) * 0.2 para pontuacao_visual += len(matches) * 0.15. Justificativa: Implementação correta usa fator 0.15 (implementation.py:126-133).",
+          "testStrategy": "Verificar se o fator de multiplicação é 0.15 no cálculo de pontuação"
         },
         {
-          "id": 3,
-          "title": "Criar testes para os callbacks refatorados",
-          "description": "Desenvolver testes para os callbacks before_tool, after_tool e before_agent para garantir que a lógica de e-commerce foi removida e a lógica de estudante funciona corretamente.",
-          "dependencies": [],
-          "details": "Arquivos alvo: Múltiplos arquivos dentro de professor_virtual/shared_libraries/callbacks/",
-          "status": "done",
-          "parentTaskId": 10
+          "id": 44,
+          "parentTaskId": 4,
+          "title": "Adicionar função extrair_contexto_educacional",
+          "description": "Implementar função auxiliar para análise de contexto educacional",
+          "details": "Adicionar função extrair_contexto_educacional(texto: str) -> Dict[str, Any] com dicionário de matérias e detecção de contexto. Justificativa: Função definida em implementation.py:268-288 mas ausente no projeto.",
+          "testStrategy": "Verificar se a função existe e retorna dicionário com materia_provavel, nivel_complexidade e tipo_ajuda"
         }
       ]
     }
   ],
   "metadata": {
-    "projectName": "Professor Virtual Migration Fixes",
-    "totalTasks": 10,
-    "sourceFile": "ERROS_MIGRACAO_DETALHADOS.md",
-    "generatedAt": "2025-07-26T10:00:00Z"
+    "totalTasks": 4,
+    "totalSubtasks": 9,
+    "sourceFile": "inconsistencias_migracao_adk.yaml",
+    "creationDate": "2025-07-26",
+    "project": "professor-virtual",
+    "description": "Lista de tarefas para corrigir inconsistências identificadas na migração do código ADK para o Professor Virtual"
   }
 }
