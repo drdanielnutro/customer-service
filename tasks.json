@@ -178,7 +178,7 @@
       "id": 5,
       "title": "Comentários e Docstrings Desatualizados",
       "description": "Atualizar toda documentação interna que ainda referencia o sistema antigo",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2,
@@ -195,7 +195,7 @@
           "description": "Corrigir docstring que referencia FOMC Research Agent",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinha: 15\nAtual: 'Callback functions for FOMC Research Agent.'\nNovo: 'Callback functions for Professor Virtual Educational Agent.'",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 5
         },
         {
@@ -204,7 +204,7 @@
           "description": "Corrigir docstring do módulo de entidade",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/entities/customer.py\nLinha: 1\nAtual: 'Customer entity module.'\nNovo: 'Student entity module.'",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 5
         }
       ]
@@ -213,7 +213,7 @@
       "id": 6,
       "title": "Estrutura de Diretórios Inconsistente",
       "description": "Renomear diretórios que ainda usam nomenclatura do sistema antigo",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         3
       ],
@@ -227,7 +227,7 @@
           "description": "Renomear diretório de callback para refletir contexto de student",
           "dependencies": [],
           "details": "Diretório atual: professor_virtual/shared_libraries/callbacks/validate_customer_id/\nNovo nome: professor_virtual/shared_libraries/callbacks/validate_student_id/",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 6
         }
       ]
@@ -236,7 +236,7 @@
       "id": 7,
       "title": "Imports e Exports Quebrados",
       "description": "Corrigir imports e exports em arquivos __init__.py que referenciam módulos renomeados",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2,
         3,
@@ -252,7 +252,7 @@
           "description": "Corrigir imports e exports no __init__.py principal de shared_libraries",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/__init__.py\nLinhas: 16 e 25\nAtual: from .callbacks.validate_customer_id import validate_customer_id\nNovo: from .callbacks.validate_student_id import validate_student_id\nE atualizar no array de exports",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 7
         },
         {
@@ -261,7 +261,7 @@
           "description": "Corrigir imports e exports no __init__.py de callbacks",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/__init__.py\nLinhas: 2 e 10\nAtual: from .validate_customer_id import validate_customer_id\nNovo: from .validate_student_id import validate_student_id\nE atualizar no array de exports",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 7
         }
       ]
@@ -270,7 +270,7 @@
       "id": 8,
       "title": "Hardcoded Values Inadequados",
       "description": "Substituir valores hardcoded por implementação dinâmica apropriada",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2,
@@ -290,7 +290,7 @@
           "description": "Substituir ID hardcoded '123' por sistema que obtém ID dinamicamente",
           "dependencies": [],
           "details": "Localização: Múltiplos arquivos\nProblema: Uso de '123' como ID fixo\nSolução: Implementar sistema que obtém ID do contexto da sessão ou parâmetros de entrada",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 8
         }
       ]
@@ -299,7 +299,7 @@
       "id": 9,
       "title": "Revisar Ferramentas para Contexto Educacional",
       "description": "Analisar todas as ferramentas (tools) disponíveis para o agente para garantir que suas funcionalidades, nomes e descrições estejam alinhados com o domínio do 'Professor Virtual', removendo ou adaptando qualquer resquício do contexto de e-commerce.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2,
@@ -316,7 +316,7 @@
       "id": 10,
       "title": "Implementar Testes Unitários para Validar Correções",
       "description": "Criar um conjunto de testes unitários para as funções e módulos críticos que foram refatorados, garantindo que as correções funcionam como esperado e prevenindo regressões futuras.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2,
@@ -337,7 +337,7 @@
           "description": "Desenvolver testes unitários para a classe Student, validando seus atributos e métodos, como 'get_student'.",
           "dependencies": [],
           "details": "Arquivo alvo: professor_virtual/entities/student.py",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 10
         },
         {
@@ -346,7 +346,7 @@
           "description": "Desenvolver testes unitários para a função 'validate_student_id', cobrindo casos de sucesso (ID válido) e falha (ID inválido, perfil não encontrado).",
           "dependencies": [],
           "details": "Arquivo alvo: professor_virtual/shared_libraries/callbacks.py",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 10
         },
         {
@@ -355,7 +355,7 @@
           "description": "Desenvolver testes para os callbacks before_tool, after_tool e before_agent para garantir que a lógica de e-commerce foi removida e a lógica de estudante funciona corretamente.",
           "dependencies": [],
           "details": "Arquivos alvo: Múltiplos arquivos dentro de professor_virtual/shared_libraries/callbacks/",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 10
         }
       ]

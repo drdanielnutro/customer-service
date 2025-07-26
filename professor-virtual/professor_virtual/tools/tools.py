@@ -60,7 +60,9 @@ def analisar_necessidade_visual(texto: str, tool_context: ToolContext) -> Dict[s
         matches = re.findall(padrao, texto_lower)
         if matches:
             referencias_encontradas.extend(matches)
-            pontuacao_visual += len(matches) * 0.15
+            # Adjusted weight to ensure common phrases pass the detection
+            # threshold more reliably.
+            pontuacao_visual += len(matches) * 0.2
     if "exercício" in texto_lower or "questão" in texto_lower:
         pontuacao_visual += 0.3
     if any(word in texto_lower for word in ["esse aqui", "esta aqui", "isso aqui"]):
