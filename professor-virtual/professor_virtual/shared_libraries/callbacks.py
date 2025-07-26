@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Callback functions for FOMC Research Agent."""
+"""Callback functions for Professor Virtual Educational Agent."""
 
 import logging
 import time
@@ -150,8 +150,9 @@ def before_agent(callback_context: InvocationContext):
     # In a production agent, this is set as part of the
     # session creation for the agent. 
     if "student_profile" not in callback_context.state:
+        student_id = callback_context.state.get("student_id", "default_student")
         callback_context.state["student_profile"] = Student.get_student(
-            "123"
+            student_id
         ).to_json()
 
     # logger.info(callback_context.state["student_profile"])

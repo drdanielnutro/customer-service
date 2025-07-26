@@ -1,5 +1,5 @@
 from .rate_limit_callback import rate_limit_callback
-from .validate_customer_id import validate_student_id
+from .validate_student_id import validate_student_id
 from .lowercase_value import lowercase_value
 from .before_tool import before_tool
 from .after_tool import after_tool
