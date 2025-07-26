@@ -137,7 +137,7 @@
       "id": 4,
       "title": "Lógica de E-commerce Residual",
       "description": "Remover completamente toda lógica relacionada a e-commerce que não faz sentido no contexto educacional",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         3
       ],
@@ -151,7 +151,7 @@
           "description": "Eliminar todas as lógicas de desconto e carrinho do arquivo principal de callbacks",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nRemover:\n- Linhas 147-154: Lógica de aprovação de desconto (sync_ask_for_approval)\n- Linhas 156-161: Lógica de modificação de carrinho (modify_cart)\n- Linhas 168-178: Callbacks after_tool com lógica de desconto",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 4
         },
         {
@@ -160,7 +160,7 @@
           "description": "Remover lógica de desconto e carrinho do callback after_tool",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/after_tool/after_tool_callback.py\nLinhas: 13-23\nRemover toda a lógica de desconto e carrinho",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 4
         },
         {
@@ -169,7 +169,7 @@
           "description": "Remover lógica de aprovação e carrinho do callback before_tool",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_tool/before_tool_callback.py\nLinhas: 28-43\nRemover lógica de aprovação de desconto e modificação de carrinho",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 4
         }
       ]

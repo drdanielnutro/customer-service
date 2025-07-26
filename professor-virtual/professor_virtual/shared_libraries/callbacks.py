@@ -135,41 +135,14 @@ def before_tool(
         if not valid:
             return err
 
-    # Check for the next tool call and then act accordingly.
-    # Example logic based on the tool being called.
-    if tool.name == "sync_ask_for_approval":
-        amount = args.get("value", None)
-        if amount <= 10:  # Example business rule
-            return {
-                "status": "approved",
-                "message": "You can approve this discount; no manager needed."
-            }
-        # Add more logic checks here as needed for your tools.
-
-    if tool.name == "modify_cart":
-        if (
-            args.get("items_added") is True
-            and args.get("items_removed") is True
-        ):
-            return {"result": "I have added and removed the requested items."}
+    # No e-commerce logic should be triggered in the educational context.
     return None
 
 def after_tool(
     tool: BaseTool, args: Dict[str, Any], tool_context: ToolContext, tool_response: Dict
 ) -> Optional[Dict]:
 
-  # After approvals, we perform operations deterministically in the callback
-  # to apply the discount in the cart.
-  if tool.name == "sync_ask_for_approval":
-    if tool_response['status'] == "approved":
-        logger.debug("Applying discount to the cart")
-        # Actually make changes to the cart
-
-  if tool.name == "approve_discount":
-    if tool_response['status'] == "ok":
-        logger.debug("Applying discount to the cart")
-        # Actually make changes to the cart
-
+  # The after_tool callback is a no-op in the educational context.
   return None
 
 # checking that the customer profile is loaded as state.
