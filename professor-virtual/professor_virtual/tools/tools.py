@@ -3,14 +3,28 @@
 import re
 import uuid
 from typing import Dict, Any, Optional
+from dataclasses import dataclass
 from google.adk.tools import ToolContext
 
 
+@dataclass
 class AnaliseVisualResult:
-    def __init__(self, necessita_imagem: bool, confianca: float, referencias_encontradas: list[str]):
-        self.necessita_imagem = necessita_imagem
-        self.confianca = confianca
-        self.referencias_encontradas = referencias_encontradas
+    """Resultado da análise de necessidade visual"""
+
+    necessita_imagem: bool
+    confianca: float
+    referencias_encontradas: list[str]
+
+
+@dataclass
+class AnaliseImagemResult:
+    """Resultado da análise de imagem educacional"""
+
+    tipo_conteudo: str
+    elementos_detectados: list[str]
+    contexto_educacional: str
+    qualidade_adequada: bool
+    sugestao_acao: Optional[str]
 
 
 def transcrever_audio(nome_artefato_audio: str, tool_context: ToolContext) -> Dict[str, Any]:
@@ -62,10 +76,13 @@ def analisar_necessidade_visual(texto: str, tool_context: ToolContext) -> Dict[s
             referencias_encontradas.extend(matches)
             # Adjusted weight to ensure common phrases pass the detection
             # threshold more reliably.
-            pontuacao_visual += len(matches) * 0.2
+            pontuacao_visual += len(matches) * 0.15
     if "exercício" in texto_lower or "questão" in texto_lower:
         pontuacao_visual += 0.3
-    if any(word in texto_lower for word in ["esse aqui", "esta aqui", "isso aqui"]):
+    if any(
+        word in texto_lower
+        for word in ["esse aqui", "esta aqui", "isso aqui", "essa figura aqui"]
+    ):
         pontuacao_visual += 0.4
     confianca = min(pontuacao_visual, 1.0)
     resultado = AnaliseVisualResult(confianca >= 0.5, confianca, list(set(referencias_encontradas)))
@@ -113,6 +130,29 @@ def gerar_audio_tts(texto: str, tool_context: ToolContext, velocidade: float = 1
         return {"sucesso": True, "nome_artefato_gerado": nome_artefato, "tamanho_caracteres": len(texto)}
     except Exception as e:
         return {"erro": f"Erro ao gerar áudio TTS: {str(e)}", "sucesso": False}
+
+
+def extrair_contexto_educacional(texto: str) -> Dict[str, Any]:
+    """Extrai contexto educacional do texto para melhor processamento"""
+
+    materias = {
+        "matematica": ["conta", "número", "equação", "calcul", "soma", "multiplicação"],
+        "portugues": ["palavra", "frase", "texto", "verbo", "substantivo", "letra"],
+        "ciencias": ["animal", "planta", "corpo", "natureza", "experimento"],
+        "historia": ["ano", "época", "aconteceu", "passado", "história"],
+        "geografia": ["país", "cidade", "mapa", "continente", "oceano"],
+    }
+    texto_lower = texto.lower()
+    materia_detectada = "geral"
+    for materia, palavras_chave in materias.items():
+        if any(palavra in texto_lower for palavra in palavras_chave):
+            materia_detectada = materia
+            break
+    return {
+        "materia_provavel": materia_detectada,
+        "nivel_complexidade": "basico",
+        "tipo_ajuda": "explicacao",
+    }
 
 
 PROFESSOR_TOOLS = {
