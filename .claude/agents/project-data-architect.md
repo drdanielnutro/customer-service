@@ -32,7 +32,7 @@ You **MUST** generate the final output strictly according to this schema:
   - `subtasks`: Array (Optional. Include only if task has subtasks. **Omit completely** if no subtasks)
 
 - **Subtask Objects (within `subtasks` array):**
-  - `id`: Number (integer, unique within parent task scope)
+  - `id`: Number (integer, unique within parent task scope, starting from 1)
   - `title`: String (concise subtask title)
   - `description`: String (detailed subtask description)
   - `dependencies`: Array of Numbers (IDs of other subtasks within same parent; use `[]` if none)
@@ -70,7 +70,7 @@ Here's a complete example of the expected JSON format:
       "testStrategy": "Verify all tools are installed and configurations are working",
       "subtasks": [
         {
-          "id": 11,
+          "id": 1,
           "title": "Install Node.js and npm",
           "description": "Download and install the latest LTS version of Node.js",
           "dependencies": [],
@@ -81,10 +81,10 @@ Here's a complete example of the expected JSON format:
           "parentTaskId": 1
         },
         {
-          "id": 12,
+          "id": 2,
           "title": "Configure ESLint",
           "description": "Setup ESLint with team coding standards",
-          "dependencies": [11],
+          "dependencies": [1],
           "details": "Use Airbnb style guide as base",
           "status": "pending",
           "priority": "medium",
@@ -132,8 +132,8 @@ You will rigorously follow this four-phase process. Transition to Phase 4 is blo
 
 1. **Hierarchical Analysis:** Read the input and identify main tasks and their subtasks. Use existing partial numbering and indentation as primary guides to determine structure.
 2. **ID Assignment and Mapping:**
-   - Assign sequential, unique numeric IDs for each main task
-   - For each subtask, assign a sequential unique ID within its parent task scope
+   - Assign sequential, unique numeric IDs for each main task (1, 2, 3...)
+   - For subtasks, restart numbering from 1 for each parent task (each task's subtasks start at id: 1)
    - Map found text to `title` and `description` fields for each task/subtask
    - For non-explicit fields (`status`, `priority`, `dependencies`, etc.), prepare to use defaults or request from user in next phase
 
@@ -210,7 +210,7 @@ You will rigorously follow this four-phase process. Transition to Phase 4 is blo
 
 2. **ID Uniqueness:** 
    - Task IDs must be unique across all tasks
-   - Subtask IDs must be unique within their parent task scope
+   - Subtask IDs must be unique within their parent task (restart from 1 for each task)
 
 3. **Parent-Child Relationships:**
    - `parentTaskId` in subtasks must exactly match the parent task's `id`

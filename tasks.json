@@ -11,7 +11,7 @@
       "testStrategy": "Verificar se as configurações carregam corretamente e se o agente é inicializado com os parâmetros esperados",
       "subtasks": [
         {
-          "id": 11,
+          "id": 1,
           "parentTaskId": 1,
           "title": "Corrigir nome do agente de 'professor_virtual_agent' para 'professor_virtual'",
           "description": "O campo 'name' da configuração do agente deve ser 'professor_virtual' conforme especificado na arquitetura",
@@ -19,7 +19,7 @@
           "testStrategy": "Verificar se Config().agent_settings.name retorna 'professor_virtual'"
         },
         {
-          "id": 12,
+          "id": 2,
           "parentTaskId": 1,
           "title": "Adicionar campo generate_content_config na classe Config",
           "description": "Incluir configurações de geração de conteúdo com temperatura, tokens máximos e MIME type",
@@ -34,12 +34,14 @@
       "description": "Ajustar a criação do root_agent para usar instruction provider dinâmico e configurações de geração de conteúdo",
       "priority": "high",
       "status": "pending",
-      "dependencies": [1],
+      "dependencies": [
+        1
+      ],
       "details": "Arquivo: professor-virtual/professor_virtual/agent.py. Referência: desenvolvedor/instruction_providers.py. Substituir instrução estática por provider dinâmico e adicionar generate_content_config.",
       "testStrategy": "Verificar se o agente é criado com instruction provider como função e se generate_content_config é passado",
       "subtasks": [
         {
-          "id": 21,
+          "id": 1,
           "parentTaskId": 2,
           "title": "Substituir instrução estática por instruction provider dinâmico",
           "description": "Usar professor_instruction_provider em vez de INSTRUCTION fixa",
@@ -47,7 +49,7 @@
           "testStrategy": "Verificar se instruction é uma função callable e não uma string"
         },
         {
-          "id": 22,
+          "id": 2,
           "parentTaskId": 2,
           "title": "Adicionar generate_content_config ao construtor do Agent",
           "description": "Passar configurações de geração de conteúdo do config para o agente",
@@ -67,7 +69,7 @@
       "testStrategy": "Verificar se INSTRUCTION é uma função e não uma string constante",
       "subtasks": [
         {
-          "id": 31,
+          "id": 1,
           "parentTaskId": 3,
           "title": "Importar e usar professor_instruction_provider",
           "description": "Substituir definição estática de INSTRUCTION por provider dinâmico",
@@ -87,7 +89,7 @@
       "testStrategy": "Verificar se classes são dataclasses, se fator é 0.15 e se extrair_contexto_educacional existe",
       "subtasks": [
         {
-          "id": 41,
+          "id": 1,
           "parentTaskId": 4,
           "title": "Converter AnaliseVisualResult para dataclass",
           "description": "Usar @dataclass em vez de classe comum com __init__",
@@ -95,7 +97,7 @@
           "testStrategy": "Verificar se AnaliseVisualResult é uma dataclass com campos corretos"
         },
         {
-          "id": 42,
+          "id": 2,
           "parentTaskId": 4,
           "title": "Adicionar classe AnaliseImagemResult ausente",
           "description": "Implementar dataclass para estruturar resultado de análise de imagem",
@@ -103,7 +105,7 @@
           "testStrategy": "Verificar se AnaliseImagemResult existe como dataclass com todos os campos"
         },
         {
-          "id": 43,
+          "id": 3,
           "parentTaskId": 4,
           "title": "Corrigir fator de pontuação visual de 0.2 para 0.15",
           "description": "Ajustar cálculo de pontuação em analisar_necessidade_visual",
@@ -111,7 +113,7 @@
           "testStrategy": "Verificar se o fator de multiplicação é 0.15 no cálculo de pontuação"
         },
         {
-          "id": 44,
+          "id": 4,
           "parentTaskId": 4,
           "title": "Adicionar função extrair_contexto_educacional",
           "description": "Implementar função auxiliar para análise de contexto educacional",
