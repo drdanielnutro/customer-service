@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class AgentModel(BaseModel):
     """Agent model settings."""
 
-    name: str = Field(default="professor_virtual_agent")
+    name: str = Field(default="professor_virtual")
     model: str = Field(default="gemini-2.5-flash")
 
 
@@ -27,6 +27,13 @@ class Config(BaseSettings):
         case_sensitive=True,
     )
     agent_settings: AgentModel = Field(default=AgentModel())
+    generate_content_config: dict = Field(
+        default={
+            "temperature": 0.7,
+            "max_output_tokens": 1000,
+            "response_mime_type": "text/plain",
+        }
+    )
     app_name: str = "professor_virtual_app"
     CLOUD_PROJECT: str = Field(default="my_project")
     CLOUD_LOCATION: str = Field(default="us-central1")

@@ -5,7 +5,7 @@
       "title": "Corrigir inconsistências de configuração em config.py",
       "description": "Ajustar a configuração do professor virtual para alinhar com as especificações da arquitetura, incluindo nome do agente e configurações de geração de conteúdo",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "details": "Arquivo: professor-virtual/professor_virtual/config.py. Referência: desenvolvedor/architecture.json. Corrigir nome do agente e adicionar generate_content_config.",
       "testStrategy": "Verificar se as configurações carregam corretamente e se o agente é inicializado com os parâmetros esperados",
@@ -16,7 +16,8 @@
           "title": "Corrigir nome do agente de 'professor_virtual_agent' para 'professor_virtual'",
           "description": "O campo 'name' da configuração do agente deve ser 'professor_virtual' conforme especificado na arquitetura",
           "details": "Alterar: name: str = Field(default=\"professor_virtual_agent\") para name: str = Field(default=\"professor_virtual\"). Justificativa: No arquivo de arquitetura o campo 'name' é definido como 'professor_virtual' (architecture.json:8-10).",
-          "testStrategy": "Verificar se Config().agent_settings.name retorna 'professor_virtual'"
+          "testStrategy": "Verificar se Config().agent_settings.name retorna 'professor_virtual'",
+          "status": "done"
         },
         {
           "id": 2,
@@ -24,7 +25,8 @@
           "title": "Adicionar campo generate_content_config na classe Config",
           "description": "Incluir configurações de geração de conteúdo com temperatura, tokens máximos e MIME type",
           "details": "Adicionar após agent_settings: generate_content_config: dict = Field(default={\"temperature\": 0.7, \"max_output_tokens\": 1000, \"response_mime_type\": \"text/plain\"}). Justificativa: A arquitetura especifica generate_content_config (architecture.json:17-21).",
-          "testStrategy": "Verificar se Config().generate_content_config contém os valores padrão esperados"
+          "testStrategy": "Verificar se Config().generate_content_config contém os valores padrão esperados",
+          "status": "done"
         }
       ]
     },
@@ -33,7 +35,7 @@
       "title": "Corrigir inicialização do agente em agent.py",
       "description": "Ajustar a criação do root_agent para usar instruction provider dinâmico e configurações de geração de conteúdo",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1
       ],
@@ -46,7 +48,8 @@
           "title": "Substituir instrução estática por instruction provider dinâmico",
           "description": "Usar professor_instruction_provider em vez de INSTRUCTION fixa",
           "details": "Alterar: global_instruction=GLOBAL_INSTRUCTION, instruction=INSTRUCTION para global_instruction=\"\", instruction=professor_instruction_provider. Justificativa: A instrução deve ser gerada dinamicamente (instruction_providers.py:10-74).",
-          "testStrategy": "Verificar se instruction é uma função callable e não uma string"
+          "testStrategy": "Verificar se instruction é uma função callable e não uma string",
+          "status": "done"
         },
         {
           "id": 2,
@@ -54,7 +57,8 @@
           "title": "Adicionar generate_content_config ao construtor do Agent",
           "description": "Passar configurações de geração de conteúdo do config para o agente",
           "details": "Adicionar após tools: generate_content_config=configs.generate_content_config. Justificativa: A arquitetura prevê o uso de generate_content_config (architecture.json:17-21).",
-          "testStrategy": "Verificar se o agente recebe generate_content_config como parâmetro"
+          "testStrategy": "Verificar se o agente recebe generate_content_config como parâmetro",
+          "status": "done"
         }
       ]
     },
@@ -63,7 +67,7 @@
       "title": "Atualizar sistema de prompts em prompts.py",
       "description": "Substituir constante INSTRUCTION fixa por referência ao instruction provider dinâmico",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "details": "Arquivo: professor-virtual/professor_virtual/prompts.py. Referência: desenvolvedor/instruction_providers.py. Importar e usar professor_instruction_provider.",
       "testStrategy": "Verificar se INSTRUCTION é uma função e não uma string constante",
@@ -74,7 +78,8 @@
           "title": "Importar e usar professor_instruction_provider",
           "description": "Substituir definição estática de INSTRUCTION por provider dinâmico",
           "details": "Substituir INSTRUCTION = \"\"\"...\"\"\" por: from .instruction_providers import professor_instruction_provider; INSTRUCTION = professor_instruction_provider. Justificativa: Providers definem geração dinâmica de instruções (instruction_providers.py:10-74).",
-          "testStrategy": "Verificar se INSTRUCTION é importado corretamente e é callable"
+          "testStrategy": "Verificar se INSTRUCTION é importado corretamente e é callable",
+          "status": "done"
         }
       ]
     },
@@ -83,7 +88,7 @@
       "title": "Corrigir implementação de tools em tools.py",
       "description": "Ajustar classes de resultado para usar dataclasses, corrigir fator de pontuação e adicionar funções auxiliares ausentes",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "details": "Arquivo: professor-virtual/professor_virtual/tools/tools.py. Referência: desenvolvedor/implementation.py. Converter para dataclasses, corrigir pontuação e adicionar funções.",
       "testStrategy": "Verificar se classes são dataclasses, se fator é 0.15 e se extrair_contexto_educacional existe",
@@ -94,7 +99,8 @@
           "title": "Converter AnaliseVisualResult para dataclass",
           "description": "Usar @dataclass em vez de classe comum com __init__",
           "details": "Substituir class AnaliseVisualResult com __init__ por: @dataclass class AnaliseVisualResult com campos como atributos. Justificativa: Documento define como @dataclass (implementation.py:18-23).",
-          "testStrategy": "Verificar se AnaliseVisualResult é uma dataclass com campos corretos"
+          "testStrategy": "Verificar se AnaliseVisualResult é uma dataclass com campos corretos",
+          "status": "done"
         },
         {
           "id": 2,
@@ -102,7 +108,8 @@
           "title": "Adicionar classe AnaliseImagemResult ausente",
           "description": "Implementar dataclass para estruturar resultado de análise de imagem",
           "details": "Adicionar: @dataclass class AnaliseImagemResult com campos tipo_conteudo, elementos_detectados, contexto_educacional, qualidade_adequada, sugestao_acao. Justificativa: Classe definida em implementation.py:26-33 mas ausente no projeto.",
-          "testStrategy": "Verificar se AnaliseImagemResult existe como dataclass com todos os campos"
+          "testStrategy": "Verificar se AnaliseImagemResult existe como dataclass com todos os campos",
+          "status": "done"
         },
         {
           "id": 3,
@@ -110,7 +117,8 @@
           "title": "Corrigir fator de pontuação visual de 0.2 para 0.15",
           "description": "Ajustar cálculo de pontuação em analisar_necessidade_visual",
           "details": "Alterar: pontuacao_visual += len(matches) * 0.2 para pontuacao_visual += len(matches) * 0.15. Justificativa: Implementação correta usa fator 0.15 (implementation.py:126-133).",
-          "testStrategy": "Verificar se o fator de multiplicação é 0.15 no cálculo de pontuação"
+          "testStrategy": "Verificar se o fator de multiplicação é 0.15 no cálculo de pontuação",
+          "status": "done"
         },
         {
           "id": 4,
@@ -118,7 +126,8 @@
           "title": "Adicionar função extrair_contexto_educacional",
           "description": "Implementar função auxiliar para análise de contexto educacional",
           "details": "Adicionar função extrair_contexto_educacional(texto: str) -> Dict[str, Any] com dicionário de matérias e detecção de contexto. Justificativa: Função definida em implementation.py:268-288 mas ausente no projeto.",
-          "testStrategy": "Verificar se a função existe e retorna dicionário com materia_provavel, nivel_complexidade e tipo_ajuda"
+          "testStrategy": "Verificar se a função existe e retorna dicionário com materia_provavel, nivel_complexidade e tipo_ajuda",
+          "status": "done"
         }
       ]
     }

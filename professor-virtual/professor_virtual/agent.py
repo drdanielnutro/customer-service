@@ -5,6 +5,7 @@ import warnings
 from google.adk import Agent
 from .config import Config
 from .prompts import GLOBAL_INSTRUCTION, INSTRUCTION
+from .instruction_providers import professor_instruction_provider
 from .shared_libraries.callbacks import (
     rate_limit_callback,
     before_agent,
@@ -25,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 root_agent = Agent(
     model=configs.agent_settings.model,
-    global_instruction=GLOBAL_INSTRUCTION,
-    instruction=INSTRUCTION,
+    global_instruction="",
+    instruction=professor_instruction_provider,
     name=configs.agent_settings.name,
     tools=[
         transcrever_audio,
@@ -34,6 +35,7 @@ root_agent = Agent(
         analisar_imagem_educacional,
         gerar_audio_tts,
     ],
+    generate_content_config=configs.generate_content_config,
     before_tool_callback=before_tool,
     after_tool_callback=after_tool,
     before_agent_callback=before_agent,
