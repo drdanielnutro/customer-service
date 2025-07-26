@@ -1,1 +1,1 @@
-from .validate_customer_id_callback import validate_customer_id
+from .validate_student_id_callback import validate_student_id

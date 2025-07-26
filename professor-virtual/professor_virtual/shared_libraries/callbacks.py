@@ -25,7 +25,7 @@ from google.adk.agents.invocation_context import InvocationContext
 from google.adk.sessions.state import State
 from google.adk.tools.tool_context import ToolContext
 from jsonschema import ValidationError
-from customer_service.entities.customer import Customer
+from professor_virtual.entities.student import Student
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -86,32 +86,25 @@ def rate_limit_callback(
 
     return
 
-def validate_customer_id(customer_id: str, session_state: State) -> Tuple[bool, str]:
-    """
-        Validates the customer ID against the customer profile in the session state.
-        
-        Args:
-            customer_id (str): The ID of the customer to validate.
-            session_state (State): The session state containing the customer profile.
-        
-        Returns:
-            A tuple containing an bool (True/False) and a String. 
-            When False, a string with the error message to pass to the model for deciding
-            what actions to take to remediate.
-    """
-    if 'customer_profile' not in session_state:
-        return False, "No customer profile selected. Please select a profile."
+def validate_student_id(student_id: str, session_state: State) -> Tuple[bool, str]:
+    """Validate the student ID against the student profile in the session state."""
+    if "student_profile" not in session_state:
+        return False, "No student profile selected. Please select a profile."
 
     try:
-        # We read the profile from the state, where it is set deterministically
-        # at the beginning of the session.
-        c = Customer.model_validate_json(session_state['customer_profile'])
-        if customer_id == c.customer_id:
+        s = Student.model_validate_json(session_state["student_profile"])
+        if student_id == s.student_id:
             return True, None
-        else:
-            return False, "You cannot use the tool with customer_id " +customer_id+", only for "+c.customer_id+"."
-    except ValidationError as e:
-        return False, "Customer profile couldn't be parsed. Please reload the customer data. "
+        return (
+            False,
+            "You cannot use the tool with student_id "
+            + student_id
+            + ", only for "
+            + s.student_id
+            + ".",
+        )
+    except ValidationError:
+        return False, "Student profile couldn't be parsed. Please reload the student data. "
 
 def lowercase_value(value):
     """Make dictionary lowercase"""
@@ -134,11 +127,11 @@ def before_tool(
     # i make sure all values that the agent is sending to tools are lowercase
     lowercase_value(args)
 
-    # Several tools require customer_id as input. We don't want to rely
-    # solely on the model picking the right customer id. We validate it.
-    # Alternative: tools can fetch the customer_id from the state directly.
-    if 'customer_id' in args:
-        valid, err = validate_customer_id(args['customer_id'], tool_context.state)
+    # Several tools require student_id as input. We don't want to rely
+    # solely on the model picking the right student id. We validate it.
+    # Alternative: tools can fetch the student_id from the state directly.
+    if 'student_id' in args:
+        valid, err = validate_student_id(args['student_id'], tool_context.state)
         if not valid:
             return err
 
@@ -183,9 +176,9 @@ def after_tool(
 def before_agent(callback_context: InvocationContext):
     # In a production agent, this is set as part of the
     # session creation for the agent. 
-    if "customer_profile" not in callback_context.state:
-        callback_context.state["customer_profile"] = Customer.get_customer(
+    if "student_profile" not in callback_context.state:
+        callback_context.state["student_profile"] = Student.get_student(
             "123"
         ).to_json()
 
-    # logger.info(callback_context.state["customer_profile"])
+    # logger.info(callback_context.state["student_profile"])
