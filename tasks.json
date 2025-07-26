@@ -4,7 +4,7 @@
       "id": 1,
       "title": "Erros de Imports Quebrados",
       "description": "Corrigir todos os imports que referenciam 'customer_service' ao invés de 'professor_virtual' e classes incorretas",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "priority": "high",
       "details": "Imports quebrados impedem completamente o funcionamento do sistema. Total de 3 arquivos afetados com imports incorretos que precisam ser corrigidos urgentemente.",
@@ -16,7 +16,7 @@
           "description": "Atualizar import de Customer para Student no arquivo principal de callbacks",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinha: 28\nErro atual: from customer_service.entities.customer import Customer\nCorreção: from professor_virtual.entities.student import Student\nJustificativa: O módulo customer_service não existe no projeto professor-virtual",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 1
         },
         {
@@ -25,7 +25,7 @@
           "description": "Atualizar import de Customer para Student no callback before_agent",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_agent/before_agent_callback.py\nLinha: 3\nErro atual: from customer_service.entities.customer import Customer\nCorreção: from professor_virtual.entities.student import Student",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 1
         },
         {
@@ -34,7 +34,7 @@
           "description": "Atualizar import de Customer para Student no callback de validação",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/validate_customer_id/validate_customer_id_callback.py\nLinha: 5\nErro atual: from customer_service.entities.customer import Customer\nCorreção: from professor_virtual.entities.student import Student",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 1
         }
       ]
@@ -43,7 +43,7 @@
       "id": 2,
       "title": "Nomenclatura Incorreta de Arquivo",
       "description": "Renomear arquivo que ainda usa nomenclatura do sistema antigo",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1
       ],
@@ -57,7 +57,7 @@
           "description": "Renomear arquivo de entidade que ainda usa nomenclatura antiga",
           "dependencies": [],
           "details": "Arquivo atual: professor_virtual/entities/customer.py\nNovo nome: professor_virtual/entities/student.py\nProblema: O arquivo mantém o nome customer.py mas contém a classe Student",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 2
         }
       ]
@@ -66,7 +66,7 @@
       "id": 3,
       "title": "Funções e Variáveis com Nomenclatura Incorreta",
       "description": "Atualizar todas as funções e variáveis que ainda referenciam 'customer' ao invés de 'student'",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         2
@@ -81,7 +81,7 @@
           "description": "Renomear função e atualizar toda sua lógica interna de customer para student",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinhas: 89-114\nFunção atual: validate_customer_id\nNova função: validate_student_id\nAlterações necessárias:\n- Nome da função\n- Parâmetro customer_id → student_id\n- Variável 'customer_profile' → 'student_profile'\n- Classe Customer → Student\n- Atributo c.customer_id → s.student_id\n- Todas as mensagens de erro",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 3
         },
         {
@@ -92,7 +92,7 @@
             1
           ],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinhas: 137-143\nAlterações:\n- Verificar 'customer_id' in args → 'student_id' in args\n- Chamar validate_customer_id → validate_student_id\n- Atualizar comentários",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 3
         },
         {
@@ -101,7 +101,7 @@
           "description": "Atualizar lógica de inicialização do perfil do estudante",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks.py\nLinhas: 186-189\nAlterações:\n- 'customer_profile' → 'student_profile'\n- Customer.get_customer → Student.get_student",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 3
         },
         {
@@ -110,7 +110,7 @@
           "description": "Atualizar callback before_agent para usar nomenclatura de student",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_agent/before_agent_callback.py\nLinhas: 11-14\nAlterações:\n- 'customer_profile' → 'student_profile'\n- Customer.get_customer → Student.get_student",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 3
         },
         {
@@ -119,7 +119,7 @@
           "description": "Renomear arquivo e refatorar todo o conteúdo para contexto de student",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/validate_customer_id/validate_customer_id_callback.py\nNovo nome: validate_student_id_callback.py\nLinhas: 10-35 (todo o arquivo)\nSubstituir todas as referências de customer para student",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 3
         },
         {
@@ -128,7 +128,7 @@
           "description": "Corrigir referências a customer_id no callback before_tool",
           "dependencies": [],
           "details": "Arquivo: professor_virtual/shared_libraries/callbacks/before_tool/before_tool_callback.py\nLinhas: 18-23\nSubstituir customer_id por student_id",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 3
         }
       ]

@@ -1,6 +1,6 @@
 import logging
 from google.adk.agents.invocation_context import InvocationContext
-from customer_service.entities.customer import Customer
+from professor_virtual.entities.student import Student
 
 logger = logging.getLogger(__name__)
 
@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 def before_agent(callback_context: InvocationContext):
     # In a production agent, this is set as part of the
     # session creation for the agent. 
-    if "customer_profile" not in callback_context.state:
-        callback_context.state["customer_profile"] = Customer.get_customer(
+    if "student_profile" not in callback_context.state:
+        callback_context.state["student_profile"] = Student.get_student(
             "123"
         ).to_json()
 
-    # logger.info(callback_context.state["customer_profile"])
+    # logger.info(callback_context.state["student_profile"])
