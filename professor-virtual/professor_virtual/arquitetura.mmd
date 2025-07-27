@@ -1,0 +1,37 @@
+```mermaid
+graph TD
+
+    5["User<br>External Actor"]
+    6["Agent Orchestrator<br>Python"]
+    7["Student Entity<br>Python"]
+    8["Prompt Management<br>Python"]
+    9["Application Configuration<br>Python"]
+    subgraph 1["Tools System<br>Python"]
+        subgraph 2["Specialized Tools<br>Python"]
+            16["Educational Image Analyzer<br>Python"]
+            17["Visual Need Analyzer<br>Python"]
+            18["Text-to-Speech Audio Generator<br>Python"]
+            19["Audio Transcriber<br>Python"]
+        end
+    end
+    subgraph 3["Shared Libraries System<br>Python"]
+        subgraph 4["Callback Handlers<br>Python"]
+            10["After Tool Callback<br>Python"]
+            11["Before Agent Callback<br>Python"]
+            12["Before Tool Callback<br>Python"]
+            13["Lowercase Value Callback<br>Python"]
+            14["Rate Limit Callback<br>Python"]
+            15["Validate Student ID Callback<br>Python"]
+        end
+    end
+    %% Edges at this level (grouped by source)
+    6["Agent Orchestrator<br>Python"] -->|Invokes| 1["Tools System<br>Python"]
+    6["Agent Orchestrator<br>Python"] -->|Triggers| 3["Shared Libraries System<br>Python"]
+    6["Agent Orchestrator<br>Python"] -->|Manages| 7["Student Entity<br>Python"]
+    6["Agent Orchestrator<br>Python"] -->|Uses| 8["Prompt Management<br>Python"]
+    9["Application Configuration<br>Python"] -->|Provides settings to| 1["Tools System<br>Python"]
+    9["Application Configuration<br>Python"] -->|Provides settings to| 3["Shared Libraries System<br>Python"]
+    9["Application Configuration<br>Python"] -->|Provides settings to| 6["Agent Orchestrator<br>Python"]
+    1["Tools System<br>Python"] -->|Invokes| 3["Shared Libraries System<br>Python"]
+    5["User<br>External Actor"] -->|Interacts with| 6["Agent Orchestrator<br>Python"]
+    ```
