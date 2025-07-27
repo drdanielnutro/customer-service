@@ -1,5 +1,5 @@
 import pytest
-from professor_virtual.tools.tools import (
+from professor_virtual.tools import (
     transcrever_audio,
     analisar_necessidade_visual,
     analisar_imagem_educacional,

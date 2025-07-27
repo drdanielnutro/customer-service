@@ -14,7 +14,7 @@ O agente utiliza a arquitetura ADK para garantir escalabilidade e integração c
 
 ## Ferramentas Disponíveis
 
-O Professor Virtual possui as seguintes ferramentas especializadas:
+O Professor Virtual possui ferramentas especializadas organizadas em módulos individuais dentro de `professor_virtual/tools/`:
 
 ### 1. Transcrever Áudio (`transcrever_audio`)
 - **Função**: Converte perguntas em áudio para texto
@@ -35,6 +35,22 @@ O Professor Virtual possui as seguintes ferramentas especializadas:
 - **Função**: Converte respostas textuais em áudio
 - **Entrada**: Texto da resposta educacional
 - **Saída**: Arquivo de áudio com a resposta narrada
+
+## Arquitetura e Organização
+
+### Princípios de Design:
+
+1. **Modularidade**: Cada ferramenta e provider em seu próprio arquivo
+2. **Documentação Integrada**: READMEs específicos em cada módulo
+3. **Separação de Responsabilidades**: Tools, prompts e callbacks organizados
+4. **Compatibilidade ADK**: Segue padrões do Google Agent Development Kit
+
+### Módulos Principais:
+
+- **`prompts/`**: Sistema de instruction providers dinâmicos
+- **`tools/`**: Ferramentas educacionais individuais
+- **`entities/`**: Modelos de dados (Student, etc.)
+- **`shared_libraries/`**: Callbacks e utilidades compartilhadas
 
 ## Instalação
 
@@ -60,7 +76,13 @@ O Professor Virtual possui as seguintes ferramentas especializadas:
 
 3. **Ative o ambiente virtual**:
    ```bash
-   poetry shell
+   # Opção 1: Obter comando de ativação e executá-lo
+   poetry env activate
+   # Execute o comando mostrado (exemplo):
+   # source /Users/seu-usuario/Library/Caches/pypoetry/virtualenvs/professor-virtual-xxxxx-py3.xx/bin/activate
+   
+   # Opção 2: Usar poetry run diretamente (recomendado)
+   # Não precisa ativar, execute comandos com 'poetry run'
    ```
 
 4. **Configure as credenciais do Google Cloud**:
@@ -84,13 +106,21 @@ O Professor Virtual possui as seguintes ferramentas especializadas:
 ### Executar o Agente em Modo CLI
 
 ```bash
+# Se ativou o ambiente virtual:
 adk run professor_virtual
+
+# Ou execute diretamente (recomendado):
+poetry run adk run professor_virtual
 ```
 
 ### Executar com Interface Web do ADK
 
 ```bash
+# Se ativou o ambiente virtual:
 adk web
+
+# Ou execute diretamente (recomendado):
+poetry run adk web
 ```
 
 Depois selecione "professor_virtual" no dropdown da interface.
@@ -112,7 +142,11 @@ Depois selecione "professor_virtual" no dropdown da interface.
 Os testes de avaliação verificam as capacidades do agente em cenários educacionais:
 
 ```bash
+# Se ativou o ambiente virtual:
 pytest eval
+
+# Ou execute diretamente (recomendado):
+poetry run pytest eval
 ```
 
 ### Executar Testes Unitários
@@ -120,7 +154,11 @@ pytest eval
 Para testar componentes individuais:
 
 ```bash
+# Se ativou o ambiente virtual:
 pytest tests/unit
+
+# Ou execute diretamente (recomendado):
+poetry run pytest tests/unit
 ```
 
 ### Estrutura de Testes
@@ -156,6 +194,24 @@ GOOGLE_API_KEY=sua_chave_aqui
 GOOGLE_CLOUD_PROJECT=seu-projeto-id
 GOOGLE_CLOUD_LOCATION=us-central1
 ```
+
+## Sistema de Prompts Dinâmicos
+
+O Professor Virtual utiliza um sistema avançado de **Instruction Providers** que permite personalização dinâmica baseada no contexto da sessão.
+
+### Características Principais:
+
+- **Personalização Contextual**: Instruções adaptam-se ao nome e série do aluno
+- **Providers Especializados**: Diferentes funções para boas-vindas, erros e instruções principais
+- **Arquitetura Modular**: Fácil adicionar novos comportamentos
+
+### Providers Disponíveis:
+
+1. **professor_instruction_provider**: Define o comportamento principal e pedagogia
+2. **erro_instruction_provider**: Mensagens amigáveis para situações de erro
+3. **boas_vindas_provider**: Saudações personalizadas
+
+Para mais detalhes, consulte `professor_virtual/prompts/README.md`.
 
 ## Deployment no Google Agent Engine
 
@@ -206,9 +262,25 @@ professor-virtual/
 │   ├── __init__.py
 │   ├── agent.py              # Lógica principal do agente
 │   ├── config.py             # Configurações
-│   ├── prompts.py            # Prompts educacionais
+│   ├── prompts/              # Sistema de instruction providers
+│   │   ├── __init__.py
+│   │   ├── prompts.py        # Providers dinâmicos
+│   │   └── README.md         # Documentação dos providers
 │   ├── entities/             # Modelos de dados
-│   ├── tools/                # Ferramentas educacionais
+│   ├── tools/                # Ferramentas educacionais (organizadas em subdiretórios)
+│   │   ├── __init__.py
+│   │   ├── transcrever_audio/
+│   │   │   ├── __init__.py
+│   │   │   └── transcrever_audio.py
+│   │   ├── analisar_necessidade_visual/
+│   │   │   ├── __init__.py
+│   │   │   └── analisar_necessidade_visual.py
+│   │   ├── analisar_imagem_educacional/
+│   │   │   ├── __init__.py
+│   │   │   └── analisar_imagem_educacional.py
+│   │   └── gerar_audio_tts/
+│   │       ├── __init__.py
+│   │       └── gerar_audio_tts.py
 │   └── shared_libraries/     # Bibliotecas compartilhadas
 ├── deployment/               # Scripts de deployment
 ├── eval/                     # Testes de avaliação
@@ -234,3 +306,12 @@ Para dúvidas ou problemas:
 ## Licença
 
 Este projeto está licenciado sob a Apache License 2.0 - veja o arquivo LICENSE para detalhes.
+
+## Changelog Recente
+
+### [2025-07-26]
+- Reorganização das ferramentas em diretórios individuais
+- Migração do sistema de prompts para arquitetura modular  
+- Adição de documentação README.md em `prompts/`
+- Melhoria na documentação inline dos providers
+- Consolidação de `instruction_providers.py` em `prompts/prompts.py`

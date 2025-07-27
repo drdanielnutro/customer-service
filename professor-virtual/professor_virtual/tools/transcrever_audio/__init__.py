@@ -1,3 +1,3 @@
-from ..tools import transcrever_audio
+from .transcrever_audio import transcrever_audio
 
 __all__ = ["transcrever_audio"]

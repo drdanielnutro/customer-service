@@ -1,6 +1,29 @@
 """
-Instruction Providers para o Professor Virtual ADK
-Converte os templates Jinja2 em funções Python dinâmicas
+Sistema de Instruction Providers para o Professor Virtual ADK.
+
+Este módulo implementa um sistema dinâmico de geração de prompts que permite
+personalização baseada no contexto da sessão. Utiliza o padrão de instruction
+providers do Google ADK para criar instruções adaptativas.
+
+Componentes principais:
+- professor_instruction_provider: Instrução principal do agente
+- erro_instruction_provider: Mensagens de erro amigáveis  
+- boas_vindas_provider: Mensagens de boas-vindas personalizadas
+
+O sistema funciona através de funções que recebem um contexto (ReadonlyContext)
+e retornam strings formatadas com as instruções apropriadas. Isso permite que
+o comportamento do agente seja adaptado dinamicamente baseado em:
+- Informações do usuário (nome, série escolar)
+- Estado da sessão
+- Tipo de interação
+
+Exemplo de uso:
+    from .prompts import INSTRUCTION
+    
+    agent = Agent(
+        instruction=INSTRUCTION,  # Usa o provider dinâmico
+        ...
+    )
 """
 
 from google.adk.agents.readonly_context import ReadonlyContext
@@ -73,13 +96,19 @@ Siga este fluxo de raciocínio para ajudar o aluno da melhor forma possível.
     
     return instruction
 
-# As funções abaixo são para gerar mensagens diretas para o USUÁRIO,
-# não para instruir o LLM. Elas podem ser chamadas pelo seu código de aplicação (runner)
-# em situações específicas, como falhas ou transições de UI.
 
 def erro_instruction_provider(context: ReadonlyContext) -> str:
-    """Gera instrução para situações de erro no processamento."""
-    # ... (Esta função permanece a mesma, pois gera mensagens para o usuário)
+    """Gera mensagens amigáveis para situações de erro no processamento.
+    
+    Utiliza o contexto para identificar o tipo de erro e retorna uma mensagem
+    apropriada e encorajadora para a criança, evitando termos técnicos.
+    
+    Args:
+        context: Contexto contendo 'temp:tipo_erro' indicando o tipo de erro.
+        
+    Returns:
+        Mensagem de erro formatada de forma amigável.
+    """
     tipo_erro = context.state.get("temp:tipo_erro", "processar")
     base_message = "Oi! 😊\n\nParece que tive um probleminha para "
     if tipo_erro == "entender_audio":
@@ -91,9 +120,19 @@ def erro_instruction_provider(context: ReadonlyContext) -> str:
     message += "\n\nNão se preocupe, estou aqui para ajudar! 💪"
     return message
 
+
 def boas_vindas_provider(context: ReadonlyContext) -> str:
-    """Gera mensagem de boas-vindas para o aluno."""
-    # ... (Esta função permanece a mesma, é parte da UI/UX)
+    """Gera mensagem de boas-vindas personalizada para o aluno.
+    
+    Verifica se é a primeira interação e personaliza a mensagem com o nome
+    do aluno quando disponível.
+    
+    Args:
+        context: Contexto contendo 'primeira_interacao' e 'user:name'.
+        
+    Returns:
+        Mensagem de boas-vindas apropriada.
+    """
     primeira_interacao = context.state.get("primeira_interacao", True)
     user_name = context.state.get("user:name", "")
     if primeira_interacao:
@@ -103,18 +142,16 @@ def boas_vindas_provider(context: ReadonlyContext) -> str:
         message = greeting + "\n\nEm que posso ajudar agora? 😊"
     return message
 
-# ... (outras funções de mensagem para o usuário como 'despedida_provider' podem ser mantidas)
-
-# --- PROVIDERS DEPRECATED ---
-# As funções 'resposta_sem_imagem_provider' e 'resposta_com_visual_provider'
-# são agora redundantes. A lógica delas foi incorporada como diretrizes
-# dentro do 'professor_instruction_provider'. O LLM agora gera essas respostas
-# dinamicamente em vez de seguir um template rígido.
 
 # Dicionário para facilitar acesso aos providers
 INSTRUCTION_PROVIDERS = {
     "professor_instructions": professor_instruction_provider,
     "erro_processamento": erro_instruction_provider,
     "boas_vindas": boas_vindas_provider,
-    # "despedida": despedida_provider # pode ser mantido
 }
+
+# Constantes para compatibilidade com o padrão ADK
+GLOBAL_INSTRUCTION = ""
+
+# A constante INSTRUCTION referencia o provider dinâmico principal
+INSTRUCTION = professor_instruction_provider
