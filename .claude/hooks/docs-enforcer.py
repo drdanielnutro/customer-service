@@ -3,9 +3,15 @@ import json
 import sys
 import re
 
-# Domínio da documentação ADK
-DOCS_BASE_URL = "google.github.io/adk-docs"
-DOCS_PATTERN = r"https?://google\.github\.io/adk-docs"
+# Domínios permitidos para documentação oficial
+ADK_DOCS_URL = "google.github.io/adk-docs"
+GEMINI_API_URL = "ai.google.dev"
+ALLOWED_DOMAINS = [ADK_DOCS_URL, GEMINI_API_URL]
+
+# Padrões para validação de URLs
+ADK_PATTERN = r"https?://google\.github\.io/adk-docs"
+GEMINI_PATTERN = r"https?://ai\.google\.dev"
+ALLOWED_PATTERNS = [ADK_PATTERN, GEMINI_PATTERN]
 
 try:
     input_data = json.load(sys.stdin)
@@ -16,29 +22,41 @@ except json.JSONDecodeError as e:
 tool_name = input_data.get("tool_name", "")
 tool_input = input_data.get("tool_input", {})
 
-# Para WebSearch - forçar domínio específico
+# Para WebSearch - verificar domínios permitidos
 if tool_name == "WebSearch":
     allowed_domains = tool_input.get("allowed_domains", [])
     
-    # Se não tem allowed_domains ou não inclui nosso domínio
-    if not allowed_domains or DOCS_BASE_URL not in str(allowed_domains):
-        print(f"ADK Documentation search must use allowed_domains: ['{DOCS_BASE_URL}']", file=sys.stderr)
+    # Verificar se pelo menos um domínio permitido está presente
+    has_allowed_domain = any(domain in str(allowed_domains) for domain in ALLOWED_DOMAINS)
+    
+    if not allowed_domains or not has_allowed_domain:
+        print(f"Search must use allowed_domains with at least one of: {ALLOWED_DOMAINS}", file=sys.stderr)
+        print(f"Current allowed_domains: {allowed_domains}", file=sys.stderr)
         sys.exit(2)
 
-# Para WebFetch - garantir que é do domínio correto
+# Para WebFetch - garantir que é de domínio permitido
 elif tool_name == "WebFetch":
     url = tool_input.get("url", "")
     
-    # Verificar se a URL é do domínio ADK docs
-    if not re.match(DOCS_PATTERN, url):
-        print(f"URL must be from ADK documentation at {DOCS_BASE_URL}", file=sys.stderr)
-        print(f"Requested URL '{url}' is outside the ADK docs domain", file=sys.stderr)
+    # Verificar se a URL corresponde a algum padrão permitido
+    is_allowed = any(re.match(pattern, url) for pattern in ALLOWED_PATTERNS)
+    
+    if not is_allowed:
+        print(f"URL must be from official documentation domains: {ALLOWED_DOMAINS}", file=sys.stderr)
+        print(f"Requested URL '{url}' is outside allowed domains", file=sys.stderr)
         sys.exit(2)
     
-    # Auto-aprovar URLs da documentação ADK
+    # Auto-aprovar URLs de documentação oficial
+    if re.match(ADK_PATTERN, url):
+        reason = "ADK documentation URL auto-approved"
+    elif re.match(GEMINI_PATTERN, url):
+        reason = "Gemini API documentation URL auto-approved"
+    else:
+        reason = "Official documentation URL auto-approved"
+    
     output = {
         "decision": "approve",
-        "reason": "ADK documentation URL auto-approved",
+        "reason": reason,
         "suppressOutput": True
     }
     print(json.dumps(output))
