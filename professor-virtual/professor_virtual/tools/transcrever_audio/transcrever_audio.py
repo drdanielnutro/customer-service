@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 from google.adk.tools import ToolContext
 from google import genai
 from google.genai import types
+from pydantic import BaseModel
 import os
 import json
 import hashlib
@@ -16,6 +17,19 @@ logger = logging.getLogger(__name__)
 # Cache simples para transcrições
 _transcription_cache = {}
 _cache_max_size = 50
+
+
+# Schema para resposta estruturada do Gemini
+class TranscricaoGeminiResponse(BaseModel):
+    """Schema para a resposta de transcrição do modelo Gemini.
+    
+    Define a estrutura esperada da resposta do modelo, garantindo
+    consistência independente da versão ou comportamento do modelo.
+    """
+    transcricao: str
+    idioma_detectado: str = "pt-BR"
+    confianca: str = "media"
+    observacoes: str = ""
 
 
 def _get_genai_client():
@@ -86,7 +100,7 @@ def transcrever_audio(
         
         # Validar formato
         formato = mime_type.split('/')[-1] if '/' in mime_type else "desconhecido"
-        formatos_suportados = ["wav", "mp3", "m4a", "ogg", "flac", "aac", "mpeg"]
+        formatos_suportados = ["wav", "mp3", "m4a", "ogg", "flac", "aac", "mpeg", "aiff"]
         
         if formato not in formatos_suportados:
             return {
@@ -134,24 +148,35 @@ Se houver múltiplos falantes, indique com "Falante 1:", "Falante 2:", etc."""
         
         # Fazer transcrição usando método correto
         response = client.models.generate_content(
-            model='gemini-2.0-flash',  # Modelo compatível com transcrição de áudio.
+            model='gemini-2.5-flash',  # Modelo compatível com transcrição de áudio.
             contents=[prompt, audio_part],
             config=types.GenerateContentConfig(
                 temperature=0.1,
                 max_output_tokens=8000,
-                response_mime_type='application/json'
+                response_mime_type='application/json',
+                response_schema=TranscricaoGeminiResponse
             )
         )
         
         # Processar resposta
         try:
-            resultado_json = json.loads(response.text)
-            texto_transcrito = resultado_json.get("transcricao", "")
-            idioma_detectado = resultado_json.get("idioma_detectado", "pt-BR")
-            confianca = resultado_json.get("confianca", "media")
-            observacoes = resultado_json.get("observacoes", "")
-        except json.JSONDecodeError:
-            # Fallback se resposta não for JSON válido
+            # Usar response.parsed para obter objeto Pydantic validado
+            if hasattr(response, 'parsed') and response.parsed:
+                gemini_response = response.parsed
+                texto_transcrito = gemini_response.transcricao
+                idioma_detectado = gemini_response.idioma_detectado
+                confianca = gemini_response.confianca
+                observacoes = gemini_response.observacoes
+            else:
+                # Fallback para parsing manual se parsed não estiver disponível
+                resultado_json = json.loads(response.text)
+                texto_transcrito = resultado_json.get("transcricao", "")
+                idioma_detectado = resultado_json.get("idioma_detectado", "pt-BR")
+                confianca = resultado_json.get("confianca", "media")
+                observacoes = resultado_json.get("observacoes", "")
+        except (json.JSONDecodeError, AttributeError) as e:
+            # Fallback se resposta não for estruturada
+            logger.warning(f"Resposta não estruturada do modelo: {e}")
             texto_transcrito = response.text
             idioma_detectado = "desconhecido"
             confianca = "baixa"
@@ -289,6 +314,7 @@ def _estimar_duracao(audio_bytes: bytes, formato: str) -> float:
         "aac": (len(audio_bytes) * 8) / (128 * 1000),      # 128kbps
         "ogg": (len(audio_bytes) * 8) / (160 * 1000),      # 160kbps
         "flac": len(audio_bytes) / (44100 * 2 * 2 * 0.6),  # ~60% compressão
+        "aiff": len(audio_bytes) / (44100 * 2 * 2),        # 44.1kHz, 16-bit, stereo (similar ao WAV)
     }
     
     return estimativas.get(formato, len(audio_bytes) / (16000 * 2))  # Padrão: 16kHz mono

@@ -1,209 +1,35 @@
-# CLAUDE.md
+# Codebase Research Report
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## SUBAGENT ORCHESTRATION SYSTEM
-
-You have access to specialized subagents in `.claude/agents/` designed for specific tasks. Use them proactively based on context.
-
-### Available Subagents
-
-#### 1. 📊 **project-data-architect** (Blue)
-**Purpose**: Convert unstructured task lists into structured JSON
-**Use when**:
-- Converting meeting notes to tasks.json
-- Structuring chaotic documentation
-- Creating task management systems
-- Organizing project requirements
-
-**Example invocation**:
-```
-Use the project-data-architect agent to convert ERROS_MIGRACAO_DETALHADOS.md into tasks.json
-```
-
-#### 2. ✅ **tutorial-tasks-validator** (Red)
-**Purpose**: Validate completeness of tasks.json against source documents
-**Use when**:
-- After project-data-architect creates tasks.json
-- Verifying no information was lost in conversion
-- Quality assurance of task lists
-- Ensuring data integrity
-
-**Example invocation**:
-```
-Use the tutorial-tasks-validator agent to verify tasks.json matches ERROS_MIGRACAO_DETALHADOS.md
-```
-
-#### 3. 🔍 **tutorial-tasks-validator** (Green)
-**Purpose**: Deep consistency verification between tutorials and tasks.json
-**Use when**:
-- Validating tutorial-to-tasks conversions
-- Need detailed omission analysis
-- Require both human-readable and machine-processable reports
-- Checking tutorial implementation completeness
-
-**Example invocation**:
-```
-Use the tutorial-tasks-validator agent to verify tutorial.md was correctly converted to tasks.json
-```
-
-#### 4. 🪝 **claude-code-hooks-expert** (Available via Task tool)
-**Purpose**: Create and configure Claude Code hooks
-**Use when**:
-- Setting up automation workflows
-- Implementing validation rules
-- Configuring tool restrictions
-- Creating deterministic workflows
-
-**Example invocation**:
-```
-Use the claude-code-hooks-expert agent to create validation hooks for file edits
-```
-
-#### 5. 🎭 **claude-subagent-architect** (Available via Task tool)
-**Purpose**: Design and create new subagents
-**Use when**:
-- Need to create specialized subagents
-- Translating workflow requirements into agent configurations
-- Crafting specialized system prompts
-- Expanding automation capabilities
-
-**Example invocation**:
-```
-Use the claude-subagent-architect agent to design a code review subagent
-```
-
-## ORCHESTRATION PATTERNS
-
-### Pattern 1: Create → Validate
-Always validate after creation:
-```
-1. project-data-architect → creates tasks.json
-2. tutorial-tasks-validator → validates completeness
-```
-
-### Pattern 2: Design → Implement
-For new workflows:
-```
-1. claude-subagent-architect → design subagent
-2. claude-code-hooks-expert → implement hooks for automation
-```
-
-### Pattern 3: Document → Structure → Verify
-For project organization:
-```
-1. Analyze unstructured documentation
-2. project-data-architect → create structured data
-3. tutorial-tasks-validator → ensure accuracy
-```
-
-## DECISION MATRIX
-
-| User Intent                      | Primary Agent             | Follow-up Agent          |
-| -------------------------------- | ------------------------- | ------------------------ |
-| "Convert this document to tasks" | project-data-architect    | tutorial-tasks-validator |
-| "Validate tutorial conversion"   | tutorial-tasks-validator  | -                        |
-| "Create a workflow for X"        | claude-subagent-architect | claude-code-hooks-expert |
-| "Validate this tasks.json"       | tutorial-tasks-validator  | -                        |
-| "Automate this process"          | claude-code-hooks-expert  | -                        |
-| "Design a new agent"             | claude-subagent-architect | -                        |
-
-## VALIDATION PROTOCOLS
-
-### After project-data-architect:
-1. **Always** run tutorial-tasks-validator
-2. Check for 100% coverage
-3. Verify technical details preserved
-4. Ensure schema compliance
-
-### After creating hooks/subagents:
-1. Test in isolated environment
-2. Verify expected behavior
-3. Document usage
-4. Check for edge cases
-
-## CONTEXT PASSING
-
-When chaining subagents, provide clear context:
-
-```
-First, I'll use project-data-architect to structure your tasks.
-[Run project-data-architect]
-
-Now I'll validate the output using tutorial-tasks-validator to ensure completeness.
-[Run tutorial-tasks-validator with reference to source document]
-```
-
-## ERROR HANDLING
-
-If a subagent fails:
-1. Capture the error message
-2. Determine if it's a data issue or agent issue
-3. Fix data issues, then retry
-4. For agent issues, fall back to manual approach
-
-## PROACTIVE SUGGESTIONS
-
-Based on user actions, suggest appropriate subagents:
-
-- User provides error document → Suggest project-data-architect
-- User wants automation → Suggest claude-code-hooks-expert
-- Tasks.json was created → Automatically use tutorial-tasks-validator
-- User needs custom workflow → Suggest claude-subagent-architect
-
-## HOOK INTEGRATION
-
-For deterministic workflows, combine hooks with subagents:
-
-1. Configure PostToolUse hooks to trigger after specific subagents
-2. Use exit codes and JSON output for flow control
-3. Remember: hooks cannot invoke other subagents directly
-4. Use hooks for validation and automation
-
-## BEST PRACTICES
-
-1. **Always validate outputs** - Never trust subagent output without verification
-2. **Chain intelligently** - Use subagents in logical sequences
-3. **Document workflows** - Explain which subagents you're using and why
-4. **Handle errors gracefully** - Have fallback plans
-5. **Preserve context** - Pass relevant information between subagents
-
-## QUICK REFERENCE
-
-```bash
-# Convert document to tasks
-"Use project-data-architect to analyze [document] and create tasks.json"
-
-# Validate tasks (general)
-"Use tutorial-tasks-validator to verify tasks.json against [source]"
-
-# Validate tutorial conversion (detailed)
-"Use tutorial-tasks-validator to verify [tutorial] was correctly converted to tasks.json"
-
-# Create subagent
-"Use claude-subagent-architect to design an agent for [purpose]"
-
-# Setup hooks
-"Use claude-code-hooks-expert to create hooks for [automation need]"
-```
-
-Remember: Subagents are tools for specific jobs. Use them proactively when their purpose matches the user's needs.
-
----
-
-## Research Query
-
+## Query
 Analise o projeto do diretorio "/Users/institutorecriare/VSCodeProjects/projeto_professor/professor-virtual" da perspectiva da integração com o frontend (que ainda não existe). Nosso objetivo é analisar o backend e entender como deverá ser o frontend que deverá existir para que o a UI (descrita em "/Users/institutorecriare/VSCodeProjects/projeto_professor/.desenvolvedor/fonte_da_verdade.md" ). Analise fielmente cada um dos arquivos do diretório. Nosso objetivo é criar um documento que servirá como fonte da verdade deverá ser completa e expandida, mapeando cada detalhe que o usuário faz quando interage com o app e como o app responde a cada interação. Não deixe lacunas sem mapeamento. Se houver mais de uma possibilidade para uma ação, mapeie ambas ou todas elas. Não infira nada. Sempre verifique os arquivos reais do projeto
 
-*Session: e961f964a4e6e81c77415fb2f481be4f | Generated: 28/07/2025, 12:28:20*
-
-### Analysis Summary
-
+## Answer
 # Análise de Integração Frontend-Backend para Professor Virtual
 
 Este documento detalha a arquitetura do backend do projeto `professor-virtual` com foco na integração com um futuro frontend, mapeando as interações do usuário descritas em [fonte_da_verdade.md](/.desenvolvedor/fonte_da_verdade.md) para as funcionalidades do backend.
 
 ## 1. Visão Geral da Arquitetura do Backend
+
+```mermaid
+graph TB
+  frontend["Frontend<br>UI<br>N/A"]
+  backend["Backend<br>Python<br>professor-virtual/professor_virtual"]
+  agent["Agente Principal<br>Orquestrador<br>professor-virtual/professor_virtual/agent.py"]
+  toolsDir["Ferramentas (Tools)<br>Módulos Especializados<br>professor-virtual/professor_virtual/tools"]
+  config["Configuração<br>Global<br>professor-virtual/professor_virtual/config.py"]
+  entities["Entidades<br>Modelos de Dados<br>professor-virtual/professor_virtual/entities"]
+  prompts["Prompts<br>LLM Inputs<br>professor-virtual/professor_virtual/prompts"]
+  sharedLibs["Bibliotecas Compartilhadas<br>Reutilizável<br>professor-virtual/professor_virtual/shared_libraries"]
+
+  frontend --> |"Requisição-Resposta"| backend
+  backend --> |"Orquestra"| agent
+  agent --> |"Utiliza"| toolsDir
+  agent --> |"Lê"| prompts
+  backend --> |"Acessa"| config
+  backend --> |"Define"| entities
+  backend --> |"Utiliza"| sharedLibs
+```
+
 
 O backend do `professor-virtual` é estruturado em torno de um **agente principal** que orquestra a execução de **ferramentas** especializadas para processar as requisições do usuário. A comunicação com o frontend será baseada em um fluxo de requisição-resposta, onde o frontend envia dados de entrada (áudio, imagem) e o backend retorna a resposta processada (texto, áudio).
 
@@ -219,6 +45,40 @@ O diretório principal do backend é [professor-virtual/professor_virtual](profe
 *   **Bibliotecas Compartilhadas**: [professor-virtual/professor_virtual/shared_libraries](professor-virtual/professor_virtual/shared_libraries) - Contém funcionalidades reutilizáveis, como callbacks.
 
 ## 2. Mapeamento do Fluxo de Interação do Usuário com o Backend
+
+```mermaid
+graph TB
+  userActionSpeak["Ação do Usuário<br>Falar (Áudio)<br>N/A"]
+  frontendSendAudio["Frontend<br>Enviar Áudio<br>N/A"]
+  transcribeTool["transcrever_audio<br>Tool<br>professor-virtual/professor_virtual/tools/transcrever_audio/transcrever_audio.py"]
+  agentProcessText["Agente Principal<br>Processa Texto<br>professor-virtual/professor_virtual/agent.py"]
+  promptsDecision["Prompts<br>Decisão Contexto Visual<br>professor-virtual/professor_virtual/prompts/prompts.py"]
+  frontendActivateCamera["Frontend<br>Ativar Câmera<br>N/A"]
+  userActionCaptureImage["Ação do Usuário<br>Capturar Imagem<br>N/A"]
+  frontendSendImage["Frontend<br>Enviar Imagem<br>N/A"]
+  analyzeImageTool["analisar_imagem_educacional<br>Tool<br>professor-virtual/professor_virtual/tools/analisar_imagem_educacional/analisar_imagem_educacional.py"]
+  agentGenerateResponse["Agente Principal<br>Gerar Resposta Textual<br>professor-virtual/professor_virtual/agent.py"]
+  frontendDisplayResponse["Frontend<br>Exibir Texto<br>N/A"]
+  userActionPlayAudio["Ação do Usuário<br>Tocar Áudio Completo<br>N/A"]
+  generateAudioTool["gerar_audio_tts<br>Tool<br>professor-virtual/professor_virtual/tools/gerar_audio_tts/gerar_audio_tts.py"]
+  frontendPlayAudio["Frontend<br>Reproduzir Áudio<br>N/A"]
+
+  userActionSpeak --> |"Captura Áudio"| frontendSendAudio
+  frontendSendAudio --> |"Envia Áudio"| transcribeTool
+  transcribeTool --> |"Texto Transcrito"| agentProcessText
+  agentProcessText --> |"Consulta"| promptsDecision
+  agentProcessText --> |"Decide Imagem Necessária"| frontendActivateCamera
+  frontendActivateCamera --> |"Abre Câmera"| userActionCaptureImage
+  userActionCaptureImage --> |"Envia Imagem"| frontendSendImage
+  frontendSendImage --> |"Envia Imagem + Contexto"| analyzeImageTool
+  analyzeImageTool --> |"Informações da Imagem"| agentGenerateResponse
+  agentProcessText --> |"Texto Transcrito"| agentGenerateResponse
+  agentGenerateResponse --> |"Resposta Textual"| frontendDisplayResponse
+  frontendDisplayResponse --> |"Exibe Texto"| userActionPlayAudio
+  userActionPlayAudio --> |"Solicita Áudio"| generateAudioTool
+  generateAudioTool --> |"Arquivo de Áudio"| frontendPlayAudio
+```
+
 
 ### 2.1. Início da Interação: Ação de Falar (Captura e Transcrição de Áudio)
 
@@ -271,6 +131,31 @@ O diretório principal do backend é [professor-virtual/professor_virtual](profe
 
 ## 3. Considerações Adicionais para Integração Frontend
 
+```mermaid
+graph TB
+  frontend["Frontend<br>UI<br>N/A"]
+  backend["Backend<br>API<br>professor-virtual/professor_virtual"]
+  entities["Entidades<br>Modelos de Dados<br>professor-virtual/professor_virtual/entities/student.py"]
+  callbacks["Callbacks<br>Validação/Limites<br>professor-virtual/professor_virtual/shared_libraries/callbacks"]
+  config["Configurações<br>Parâmetros<br>professor-virtual/professor_virtual/config.py"]
+  httpReq["Requisição HTTP<br>POST<br>N/A"]
+  asyncComm["Comunicação Assíncrona<br>Não Bloqueante<br>N/A"]
+  errorHandling["Tratamento de Erros<br>Feedback ao Usuário<br>N/A"]
+  responseOpt["Otimização de Respostas<br>Texto Imediato, Áudio Sob Demanda<br>N/A"]
+
+  frontend --> |"Interage com"| entities
+  frontend --> |"Prepara"| httpReq
+  httpReq --> |"Envia para"| backend
+  backend --> |"Utiliza"| callbacks
+  backend --> |"Acessa"| config
+  backend --> |"Responde via"| asyncComm
+  asyncComm --> |"Permite"| errorHandling
+  asyncComm --> |"Suporta"| responseOpt
+  errorHandling --> |"Exibe"| frontend
+  responseOpt --> |"Implementado em"| frontend
+```
+
+
 ### 3.1. Entidades e Modelos de Dados
 
 O frontend precisará interagir com as entidades definidas no backend, como [student.py](professor-virtual/professor_virtual/entities/student.py). Isso implica que o frontend precisará enviar e receber dados formatados de acordo com esses modelos (e.g., `student_id`).
@@ -295,3 +180,5 @@ O frontend deve estar preparado para lidar com diferentes tipos de erros retorna
 
 Para a "Apresentação da Resposta e Áudio Contextual", o frontend deve exibir o texto imediatamente e tocar o áudio pré-gravado. A requisição para o áudio completo (TTS) deve ser feita apenas quando o usuário clicar no botão "Play", para otimizar o uso de recursos do backend.
 
+---
+*Generated by [CodeViz.ai](https://codeviz.ai) on 28/07/2025, 13:19:11*
