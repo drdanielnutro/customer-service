@@ -56,13 +56,18 @@
       "id": 4,
       "title": "Update gerar_audio_tts.py to be async and fix deprecated APIs",
       "description": "Convert gerar_audio_tts function to async and fix deprecated session.create_artifact API usage",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
       "priority": "high",
       "details": "### PROBLEMA 1: API inexistente `session.create_artifact`\n\n**❌ REMOVER (linhas 119-124):**\n```python\n        # Salvar usando a API existente do projeto\n        tool_context.session.create_artifact(\n            name=nome_artefato,\n            content=audio_bytes,\n            mime_type=\"audio/mpeg\"\n        )\n```\n\n**✅ SUBSTITUIR POR:**\n```python\n        # Salvar usando a API correta do ADK\n        audio_part = types.Part.from_data(\n            data=audio_bytes,\n            mime_type=\"audio/mpeg\"\n        )\n        version = await tool_context.save_artifact(nome_artefato, audio_part)\n```\n\n### PROBLEMA 2: Função deve ser assíncrona\n\n**❌ REMOVER (linha 41):**\n```python\ndef gerar_audio_tts(texto: str, tool_context: ToolContext, velocidade: float = 1.0, voz: str = \"pt-BR-Standard-A\") -> Dict[str, Any]:\n```\n\n**✅ SUBSTITUIR POR:**\n```python\nasync def gerar_audio_tts(texto: str, tool_context: ToolContext, velocidade: float = 1.0, voz: str = \"pt-BR-Standard-A\") -> Dict[str, Any]:\n```\n\n### PROBLEMA 3: Adicionar versão no retorno\n\n**❌ REMOVER (linhas 142-148):**\n```python\n        return {\n            \"sucesso\": True,\n            \"nome_artefato_gerado\": nome_artefato,\n            \"tamanho_caracteres\": len(texto),\n            \"tamanho_bytes\": len(audio_bytes),\n            \"voz_utilizada\": gemini_voice,\n            \"velocidade\": velocidade\n        }\n```\n\n**✅ SUBSTITUIR POR:**\n```python\n        return {\n            \"sucesso\": True,\n            \"nome_artefato_gerado\": nome_artefato,\n            \"versao\": version,  # Adicionar versão retornada\n            \"tamanho_caracteres\": len(texto),\n            \"tamanho_bytes\": len(audio_bytes),\n            \"voz_utilizada\": gemini_voice,\n            \"velocidade\": velocidade\n        }\n```",
-      "testStrategy": "Verify that gerar_audio_tts function is async, uses await tool_context.save_artifact() with types.Part.from_data() instead of session.create_artifact(), and includes version field in the return object"
+      "testStrategy": "Verify that gerar_audio_tts function is async, uses await tool_context.save_artifact() with types.Part.from_data() instead of session.create_artifact(), and includes version field in the return object",
+      "started_at": "2025-07-30T17:57:22.033720Z",
+      "completed_at": "2025-07-30T18:02:14.438395Z",
+      "files_modified": [
+        "professor-virtual/professor_virtual/tools/gerar_audio_tts/gerar_audio_tts.py"
+      ]
     },
     {
       "id": 5,

@@ -55,13 +55,14 @@ def _create_wav_from_pcm(pcm_data: bytes, mime_type: str = "audio/pcm") -> bytes
     return wav_buffer.getvalue()
 
 
-async def gerar_audio_tts(texto: str, tool_context: ToolContext, voz: str = "Kore") -> Dict[str, Any]:
+async def gerar_audio_tts(texto: str, tool_context: ToolContext, velocidade: float = 1.0, voz: str = "pt-BR-Standard-A") -> Dict[str, Any]:
     """Gera um artefato de áudio TTS a partir de um texto usando a API Gemini.
     
     Args:
         texto: O texto a ser convertido em áudio
         tool_context: Contexto da ferramenta ADK
-        voz: Nome da voz Gemini a ser usada (padrão: "Kore")
+        voz: Nome da voz Gemini a ser usada (padrão: "pt-BR-Standard-A")
+        velocidade: Fator de velocidade da fala
              Vozes disponíveis: Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede,
              Callirrhoe, Autonoe, Enceladus, Iapetus, Umbriel, Algieba, Despina,
              Erinome, Algenib, Rasalgethi, Laomedeia, Achernar, Alnilam, Schedar,
@@ -94,7 +95,9 @@ async def gerar_audio_tts(texto: str, tool_context: ToolContext, voz: str = "Kor
                 "vozes_validas": sorted(list(vozes_validas)),
                 "sucesso": False
             }
-        
+
+        gemini_voice = voz
+
         # Configurar cliente
         client = _get_genai_client()
         
@@ -107,7 +110,7 @@ async def gerar_audio_tts(texto: str, tool_context: ToolContext, voz: str = "Kor
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name=voz
+                        voice_name=gemini_voice
                     )
                 )
             )
@@ -155,18 +158,15 @@ async def gerar_audio_tts(texto: str, tool_context: ToolContext, voz: str = "Kor
         # Gerar nome do artefato com extensão correta
         nome_artefato = f"resposta_tts_{uuid.uuid4()}.wav"
         
-        # Criar Part do artifact
-        audio_artifact = types.Part.from_bytes(
+        # Criar Part do artifact usando API ADK
+        audio_part = types.Part.from_data(
             data=audio_bytes,
-            mime_type="audio/wav"
+            mime_type="audio/mpeg"
         )
-        
+
         # Salvar usando método ADK
         try:
-            version = await tool_context.save_artifact(
-                filename=nome_artefato,
-                artifact=audio_artifact
-            )
+            version = await tool_context.save_artifact(nome_artefato, audio_part)
         except ValueError as e:
             return {
                 "erro": f"Erro ao salvar artifact: {e}. Artifact service não configurado?",
@@ -179,7 +179,7 @@ async def gerar_audio_tts(texto: str, tool_context: ToolContext, voz: str = "Kor
                 tool_context.state["ultimo_audio_tts"] = {
                     "arquivo": nome_artefato,
                     "texto_original": texto[:100] + "..." if len(texto) > 100 else texto,
-                    "voz_utilizada": voz,
+                    "voz_utilizada": gemini_voice,
                     "tamanho_bytes": len(audio_bytes)
                 }
             except:
@@ -188,13 +188,13 @@ async def gerar_audio_tts(texto: str, tool_context: ToolContext, voz: str = "Kor
         
         # Retornar resposta no formato original esperado
         return {
-            "sucesso": True, 
-            "nome_artefato_gerado": nome_artefato, 
+            "sucesso": True,
+            "nome_artefato_gerado": nome_artefato,
+            "versao": version,  # Adicionar versão retornada
             "tamanho_caracteres": len(texto),
             "tamanho_bytes": len(audio_bytes),
-            "voz_utilizada": voz,
-            "versao_artefato": version,  # NOVO CAMPO
-            "mime_type_original": mime_type  # NOVO CAMPO (opcional, para debug)
+            "voz_utilizada": gemini_voice,
+            "velocidade": velocidade
         }
         
     except Exception as e:
