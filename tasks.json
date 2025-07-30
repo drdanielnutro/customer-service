@@ -90,25 +90,35 @@
       "id": 6,
       "title": "Create artifact_handler.py for managing frontend uploads",
       "description": "Create a new file to handle file uploads from frontend and create artifacts following ADK standards",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
       "priority": "high",
       "details": "Novo Arquivo Necessário: `professor_virtual/artifact_handler.py`\n\nCriar este arquivo para gerenciar uploads do frontend:\n\n```python\n\"\"\"Handler para processar uploads e criar artifacts do frontend.\"\"\"\n\nimport base64\nfrom typing import Dict, Any\nfrom google.genai import types\nfrom google.adk.agents.invocation_context import InvocationContext\n\n\nasync def handle_file_upload(\n    file_data: Dict[str, Any],\n    context: InvocationContext\n) -> Dict[str, Any]:\n    \"\"\"\n    Processa upload de arquivo do frontend e cria artifact.\n    \n    Args:\n        file_data: Dict com 'content' (base64), 'mime_type' e 'filename'\n        context: Contexto da invocação ADK\n        \n    Returns:\n        Dict com informações do artifact criado\n    \"\"\"\n    try:\n        # Decodificar base64 se necessário\n        if isinstance(file_data['content'], str):\n            content_bytes = base64.b64decode(file_data['content'])\n        else:\n            content_bytes = file_data['content']\n            \n        # Criar Part do arquivo\n        artifact = types.Part.from_data(\n            data=content_bytes,\n            mime_type=file_data['mime_type']\n        )\n        \n        # Salvar artifact\n        version = await context.save_artifact(\n            filename=file_data['filename'],\n            artifact=artifact\n        )\n        \n        return {\n            \"success\": True,\n            \"filename\": file_data['filename'],\n            \"version\": version,\n            \"size\": len(content_bytes)\n        }\n        \n    except Exception as e:\n        return {\n            \"success\": False,\n            \"error\": str(e)\n        }\n```",
-      "testStrategy": "Verify that artifact_handler.py exists in professor_virtual directory, contains handle_file_upload async function with proper imports (base64, types from google.genai, InvocationContext), handles base64 decoding, creates artifacts using types.Part.from_data(), saves artifacts with context.save_artifact(), and returns success/error responses with proper fields"
+      "testStrategy": "Verify that artifact_handler.py exists in professor_virtual directory, contains handle_file_upload async function with proper imports (base64, types from google.genai, InvocationContext), handles base64 decoding, creates artifacts using types.Part.from_data(), saves artifacts with context.save_artifact(), and returns success/error responses with proper fields",
+      "started_at": "2025-07-30T23:30:09Z",
+      "completed_at": "2025-07-30T23:32:30Z",
+      "files_modified": [
+        "professor-virtual/professor_virtual/artifact_handler.py"
+      ]
     },
     {
       "id": 7,
       "title": "Frontend Integration Guidelines (Documentation/Comments)",
       "description": "Document the frontend integration requirements and data format specifications for proper communication with the ADK backend",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         6
       ],
       "priority": "high",
       "details": "## Modificações no Frontend (Orientações)\n\n### Frontend deve enviar dados no formato:\n\n```json\n{\n  \"action\": \"upload_file\",\n  \"file_data\": {\n    \"content\": \"base64_encoded_content\",\n    \"mime_type\": \"audio/wav\",\n    \"filename\": \"pergunta_aluno_123.wav\"\n  },\n  \"session_id\": \"session_abc\",\n  \"user_id\": \"user_123\"\n}\n```\n\n### Frontend NÃO deve:\n- Esperar que o Runner crie artifacts automaticamente\n- Enviar arquivos binários diretamente no corpo da requisição\n- Usar APIs do ADK diretamente (não há SDK Flutter oficial)\n\n### Frontend DEVE:\n- Converter arquivos para base64 antes de enviar\n- Incluir sempre o MIME type correto\n- Aguardar confirmação com filename e version do backend",
-      "testStrategy": "Verify that frontend code (when implemented) follows these guidelines: sends data in the specified JSON format with base64 encoding, includes all required fields (action, file_data with content/mime_type/filename, session_id, user_id), does not expect automatic artifact creation, does not send binary data directly, and properly waits for backend confirmation with filename and version"
+      "testStrategy": "Verify that frontend code (when implemented) follows these guidelines: sends data in the specified JSON format with base64 encoding, includes all required fields (action, file_data with content/mime_type/filename, session_id, user_id), does not expect automatic artifact creation, does not send binary data directly, and properly waits for backend confirmation with filename and version",
+      "started_at": "2025-07-30T23:32:48Z",
+      "completed_at": "2025-07-30T23:33:32Z",
+      "files_modified": [
+        ".desenvolvedor/frontend/frontend_integration_guidelines.md"
+      ]
     },
     {
       "id": 11,
