@@ -21,33 +21,116 @@ You have access to specialized subagents in `.claude/agents/` designed for speci
 Use the project-data-architect agent to convert ERROS_MIGRACAO_DETALHADOS.md into tasks.json
 ```
 
-#### 2. ✅ **tutorial-tasks-validator** (Red)
-**Purpose**: Validate completeness of tasks.json against source documents
+#### 2. ✅ **tutorial-tasks-validator** (Green)
+**Purpose**: Deep consistency verification between tutorials and tasks.json
 **Use when**:
+- Validating tutorial-to-tasks conversions
 - After project-data-architect creates tasks.json
 - Verifying no information was lost in conversion
-- Quality assurance of task lists
-- Ensuring data integrity
+- Need detailed omission analysis
+- Require both human-readable and machine-processable reports
 
 **Example invocation**:
 ```
 Use the tutorial-tasks-validator agent to verify tasks.json matches ERROS_MIGRACAO_DETALHADOS.md
 ```
 
-#### 3. 🔍 **tutorial-tasks-validator** (Green)
-**Purpose**: Deep consistency verification between tutorials and tasks.json
+#### 3. 🔧 **executor-codigo** (Orange)
+**Purpose**: Execute precise Python code modifications
 **Use when**:
-- Validating tutorial-to-tasks conversions
-- Need detailed omission analysis
-- Require both human-readable and machine-processable reports
-- Checking tutorial implementation completeness
+- Need to modify function signatures (make async, change parameters)
+- Replace deprecated API calls
+- Add/remove specific lines of code
+- Create new Python files with exact specifications
+- User says "modify function X", "replace API Y", "make async"
 
 **Example invocation**:
 ```
-Use the tutorial-tasks-validator agent to verify tutorial.md was correctly converted to tasks.json
+Use the executor-codigo agent to make the analyze_image function async and replace session.get_artifact with tool_context.load_artifact
 ```
 
-#### 4. 🪝 **claude-code-hooks-expert** (Available via Task tool)
+#### 4. 📚 **adk-docs-expert-projeto** (Green)
+**Purpose**: Query official Google ADK documentation
+**Use when**:
+- Need ADK installation instructions
+- Looking for ADK API references
+- Troubleshooting ADK-specific errors
+- Understanding ADK best practices
+- Migration guidance to ADK
+
+**Example invocation**:
+```
+Use the adk-docs-expert-projeto agent to find how to install ADK on macOS
+```
+
+#### 5. 🔍 **adk-tool-compatibility-analyzer** (Purple)
+**Purpose**: Verify compatibility between mock and real ADK tool implementations
+**Use when**:
+- Implemented a real version of an ADK tool
+- Need to verify function signatures match
+- Checking artifact usage compliance
+- Validating Gemini model appropriateness
+
+**Example invocation**:
+```
+Use the adk-tool-compatibility-analyzer agent to verify compatibility of transcrever_audio_real.py with the mock version
+```
+
+#### 6. 🏷️ **validador-tasks-adk** (Yellow)
+**Purpose**: Technical validation of tasks for ADK migration
+**Use when**:
+- Validating proposed implementations against ADK/Gemini APIs
+- Checking method signatures and class structures
+- Generating conformity reports
+- Ensuring ADK compliance before implementation
+
+**Example invocation**:
+```
+Use the validador-tasks-adk agent to validate if the proposed task implementations conform to ADK APIs
+```
+
+#### 7. 🔵 **gemini-api-compliance-auditor** (Blue)
+**Purpose**: Verify Gemini API call compliance
+**Use when**:
+- User implemented Gemini API calls
+- Debugging API integration issues
+- Need parameter-by-parameter validation
+- Verifying response structure compliance
+
+**Example invocation**:
+```
+Use the gemini-api-compliance-auditor agent to check if my model.generate_content call is correct
+```
+
+#### 8. 🌐 **web-researcher**
+**Purpose**: Search the web for current information
+**Use when**:
+- Questions require up-to-date information
+- Need to research external documentation
+- Looking for recent updates or news
+- Any query that benefits from web search
+
+**Example invocation**:
+```
+Use the web-researcher agent to find the latest Gemini API updates
+```
+
+#### 9. 🎭 **sub-agent-architect** (Yellow)
+**Purpose**: Design and create new subagents
+**Use when**:
+- Need to create specialized subagents
+- Translating workflow requirements into agent configurations
+- Crafting specialized system prompts
+- Expanding automation capabilities
+
+**Example invocation**:
+```
+Use the sub-agent-architect agent to design a code review subagent
+```
+
+#### Additional Agents (Available via Task tool)
+
+#### 🪝 **claude-code-hooks-expert**
 **Purpose**: Create and configure Claude Code hooks
 **Use when**:
 - Setting up automation workflows
@@ -60,19 +143,6 @@ Use the tutorial-tasks-validator agent to verify tutorial.md was correctly conve
 Use the claude-code-hooks-expert agent to create validation hooks for file edits
 ```
 
-#### 5. 🎭 **claude-subagent-architect** (Available via Task tool)
-**Purpose**: Design and create new subagents
-**Use when**:
-- Need to create specialized subagents
-- Translating workflow requirements into agent configurations
-- Crafting specialized system prompts
-- Expanding automation capabilities
-
-**Example invocation**:
-```
-Use the claude-subagent-architect agent to design a code review subagent
-```
-
 ## ORCHESTRATION PATTERNS
 
 ### Pattern 1: Create → Validate
@@ -82,14 +152,23 @@ Always validate after creation:
 2. tutorial-tasks-validator → validates completeness
 ```
 
-### Pattern 2: Design → Implement
-For new workflows:
+### Pattern 2: Design → Implement → Execute
+For code modifications:
 ```
-1. claude-subagent-architect → design subagent
-2. claude-code-hooks-expert → implement hooks for automation
+1. validador-tasks-adk → validate implementation plan
+2. executor-codigo → execute code modifications
+3. adk-tool-compatibility-analyzer → verify compatibility
 ```
 
-### Pattern 3: Document → Structure → Verify
+### Pattern 3: Research → Design → Implement
+For new workflows:
+```
+1. web-researcher or adk-docs-expert-projeto → gather information
+2. sub-agent-architect → design subagent
+3. claude-code-hooks-expert → implement hooks for automation
+```
+
+### Pattern 4: Document → Structure → Verify
 For project organization:
 ```
 1. Analyze unstructured documentation
@@ -99,14 +178,21 @@ For project organization:
 
 ## DECISION MATRIX
 
-| User Intent                      | Primary Agent             | Follow-up Agent          |
-| -------------------------------- | ------------------------- | ------------------------ |
-| "Convert this document to tasks" | project-data-architect    | tutorial-tasks-validator |
-| "Validate tutorial conversion"   | tutorial-tasks-validator  | -                        |
-| "Create a workflow for X"        | claude-subagent-architect | claude-code-hooks-expert |
-| "Validate this tasks.json"       | tutorial-tasks-validator  | -                        |
-| "Automate this process"          | claude-code-hooks-expert  | -                        |
-| "Design a new agent"             | claude-subagent-architect | -                        |
+| User Intent                      | Primary Agent                   | Follow-up Agent                 |
+| -------------------------------- | ------------------------------- | ------------------------------- |
+| "Convert this document to tasks" | project-data-architect          | tutorial-tasks-validator        |
+| "Validate tutorial conversion"   | tutorial-tasks-validator        | -                               |
+| "Modify Python function"         | executor-codigo                 | adk-tool-compatibility-analyzer |
+| "Make function async"            | executor-codigo                 | -                               |
+| "Replace deprecated API"         | executor-codigo                 | gemini-api-compliance-auditor   |
+| "How to install ADK?"            | adk-docs-expert-projeto         | -                               |
+| "Check ADK tool compatibility"   | adk-tool-compatibility-analyzer | -                               |
+| "Validate ADK migration tasks"   | validador-tasks-adk             | executor-codigo                 |
+| "Verify Gemini API call"         | gemini-api-compliance-auditor   | -                               |
+| "Find latest API updates"        | web-researcher                  | -                               |
+| "Create a workflow for X"        | sub-agent-architect             | claude-code-hooks-expert        |
+| "Automate this process"          | claude-code-hooks-expert        | -                               |
+| "Design a new agent"             | sub-agent-architect             | -                               |
 
 ## VALIDATION PROTOCOLS
 
@@ -115,6 +201,12 @@ For project organization:
 2. Check for 100% coverage
 3. Verify technical details preserved
 4. Ensure schema compliance
+
+### After executor-codigo:
+1. Run adk-tool-compatibility-analyzer if ADK tools involved
+2. Run gemini-api-compliance-auditor if Gemini API calls modified
+3. Verify code still runs without errors
+4. Check that only requested changes were made
 
 ### After creating hooks/subagents:
 1. Test in isolated environment
@@ -132,6 +224,9 @@ First, I'll use project-data-architect to structure your tasks.
 
 Now I'll validate the output using tutorial-tasks-validator to ensure completeness.
 [Run tutorial-tasks-validator with reference to source document]
+
+Finally, I'll use executor-codigo to implement the first task.
+[Run executor-codigo with specific task details]
 ```
 
 ## ERROR HANDLING
@@ -147,9 +242,12 @@ If a subagent fails:
 Based on user actions, suggest appropriate subagents:
 
 - User provides error document → Suggest project-data-architect
+- User mentions "make async" or "modify function" → Suggest executor-codigo
+- User asks about ADK → Suggest adk-docs-expert-projeto
+- User implements ADK tools → Suggest adk-tool-compatibility-analyzer
 - User wants automation → Suggest claude-code-hooks-expert
 - Tasks.json was created → Automatically use tutorial-tasks-validator
-- User needs custom workflow → Suggest claude-subagent-architect
+- User needs custom workflow → Suggest sub-agent-architect
 
 ## HOOK INTEGRATION
 
@@ -167,6 +265,8 @@ For deterministic workflows, combine hooks with subagents:
 3. **Document workflows** - Explain which subagents you're using and why
 4. **Handle errors gracefully** - Have fallback plans
 5. **Preserve context** - Pass relevant information between subagents
+6. **Use executor-codigo for precision** - When exact code modifications are needed
+7. **Research before implementing** - Use web-researcher or adk-docs-expert first
 
 ## QUICK REFERENCE
 
@@ -174,14 +274,29 @@ For deterministic workflows, combine hooks with subagents:
 # Convert document to tasks
 "Use project-data-architect to analyze [document] and create tasks.json"
 
-# Validate tasks (general)
+# Validate tasks
 "Use tutorial-tasks-validator to verify tasks.json against [source]"
 
-# Validate tutorial conversion (detailed)
-"Use tutorial-tasks-validator to verify [tutorial] was correctly converted to tasks.json"
+# Execute code modifications
+"Use executor-codigo to [make function async|replace API|add lines|create file]"
+
+# Research ADK
+"Use adk-docs-expert-projeto to find [ADK topic]"
+
+# Check compatibility
+"Use adk-tool-compatibility-analyzer to verify [implementation] compatibility"
+
+# Validate ADK tasks
+"Use validador-tasks-adk to validate tasks against ADK APIs"
+
+# Audit API calls
+"Use gemini-api-compliance-auditor to verify [API call]"
+
+# Web research
+"Use web-researcher to find [current information]"
 
 # Create subagent
-"Use claude-subagent-architect to design an agent for [purpose]"
+"Use sub-agent-architect to design an agent for [purpose]"
 
 # Setup hooks
 "Use claude-code-hooks-expert to create hooks for [automation need]"
@@ -191,107 +306,24 @@ Remember: Subagents are tools for specific jobs. Use them proactively when their
 
 ---
 
-## Research Query
+## SPECIALIZED WORKFLOWS
 
-Analise o projeto do diretorio "/Users/institutorecriare/VSCodeProjects/projeto_professor/professor-virtual" da perspectiva da integração com o frontend (que ainda não existe). Nosso objetivo é analisar o backend e entender como deverá ser o frontend que deverá existir para que o a UI (descrita em "/Users/institutorecriare/VSCodeProjects/projeto_professor/.desenvolvedor/fonte_da_verdade.md" ). Analise fielmente cada um dos arquivos do diretório. Nosso objetivo é criar um documento que servirá como fonte da verdade deverá ser completa e expandida, mapeando cada detalhe que o usuário faz quando interage com o app e como o app responde a cada interação. Não deixe lacunas sem mapeamento. Se houver mais de uma possibilidade para uma ação, mapeie ambas ou todas elas. Não infira nada. Sempre verifique os arquivos reais do projeto
+### ADK Migration Tasks
+For managing ADK migration tasks with state tracking and dependencies:
+- See: **ADK_TASK_ORCHESTRATION.md**
+- Primary agent: executor-codigo
+- Use when: Executing tasks from tasks.json with status management
 
-*Session: e961f964a4e6e81c77415fb2f481be4f | Generated: 28/07/2025, 12:28:20*
+### Quick Reference
+```bash
+# Start ADK migration
+"Execute ADK migration tasks from tasks.json"
+# Follow ADK_TASK_ORCHESTRATION.md protocol
 
-### Analysis Summary
+# Check migration status  
+"Show ADK migration progress"
+# Reports based on task states
+```
 
-# Análise de Integração Frontend-Backend para Professor Virtual
-
-Este documento detalha a arquitetura do backend do projeto `professor-virtual` com foco na integração com um futuro frontend, mapeando as interações do usuário descritas em [fonte_da_verdade.md](/.desenvolvedor/fonte_da_verdade.md) para as funcionalidades do backend.
-
-## 1. Visão Geral da Arquitetura do Backend
-
-O backend do `professor-virtual` é estruturado em torno de um **agente principal** que orquestra a execução de **ferramentas** especializadas para processar as requisições do usuário. A comunicação com o frontend será baseada em um fluxo de requisição-resposta, onde o frontend envia dados de entrada (áudio, imagem) e o backend retorna a resposta processada (texto, áudio).
-
-O diretório principal do backend é [professor-virtual/professor_virtual](professor-virtual/professor_virtual).
-
-### Componentes Principais:
-
-*   **Agente Principal**: [agent.py](professor-virtual/professor_virtual/agent.py) - Responsável por receber as entradas, orquestrar as ferramentas e gerar a resposta final.
-*   **Ferramentas (Tools)**: [professor-virtual/professor_virtual/tools](professor-virtual/professor_virtual/tools) - Módulos especializados que executam tarefas específicas como transcrição de áudio, análise de imagem e geração de áudio TTS.
-*   **Configuração**: [config.py](professor-virtual/professor_virtual/config.py) - Contém configurações globais para o aplicativo.
-*   **Entidades**: [professor-virtual/professor_virtual/entities](professor-virtual/professor_virtual/entities) - Define modelos de dados, como a entidade `Student`.
-*   **Prompts**: [professor-virtual/professor_virtual/prompts](professor-virtual/professor_virtual/prompts) - Armazena os prompts utilizados pelo agente.
-*   **Bibliotecas Compartilhadas**: [professor-virtual/professor_virtual/shared_libraries](professor-virtual/professor_virtual/shared_libraries) - Contém funcionalidades reutilizáveis, como callbacks.
-
-## 2. Mapeamento do Fluxo de Interação do Usuário com o Backend
-
-### 2.1. Início da Interação: Ação de Falar (Captura e Transcrição de Áudio)
-
-*   **Ação do Usuário (Frontend)**: A criança mantém um botão de microfone pressionado, capturando áudio. Ao soltar, o áudio é finalizado e enviado.
-*   **Backend Expectativa**: O frontend enviará o arquivo de áudio capturado para um endpoint do backend.
-*   **Componente Backend**: [transcrever_audio](professor-virtual/professor_virtual/tools/transcrever_audio)
-    *   **Propósito**: Converter um arquivo de áudio em texto.
-    *   **Entrada Esperada do Frontend**: Um arquivo de áudio (formato a ser definido, e.g., MP3, WAV) e, possivelmente, metadados como `student_id`.
-    *   **Saída para o Agente**: O texto transcrito do áudio.
-    *   **Detalhes de Implementação**: A lógica de transcrição reside em [transcrever_audio.py](professor-virtual/professor_virtual/tools/transcrever_audio/transcrever_audio.py).
-
-### 2.2. Análise do Conteúdo e Decisão sobre Contexto Visual
-
-*   **Ação do Usuário (Frontend)**: Nenhuma ação direta do usuário neste ponto; é uma decisão interna do backend.
-*   **Backend Expectativa**: Após a transcrição, o agente principal analisará o texto para determinar a necessidade de contexto visual.
-*   **Componente Backend**: [agent.py](professor-virtual/professor_virtual/agent.py) e [prompts.py](professor-virtual/professor_virtual/prompts/prompts.py)
-    *   **Propósito**: O agente utiliza o texto transcrito para decidir se uma imagem é necessária para responder à pergunta. Isso provavelmente envolve lógica de processamento de linguagem natural e prompts específicos.
-    *   **Entrada para o Agente**: O texto transcrito do áudio.
-    *   **Saída para o Frontend (Implícita)**: Se o backend determinar que uma imagem é necessária, ele sinalizará isso ao frontend (e.g., através de um campo na resposta da API ou um novo tipo de resposta), instruindo-o a ativar a câmera.
-    *   **Detalhes de Implementação**: A lógica de decisão e os prompts que guiam essa decisão estão em [agent.py](professor-virtual/professor_virtual/agent.py) e [prompts.py](professor-virtual/professor_virtual/prompts/prompts.py).
-
-### 2.3. Ativação da Câmera e Envio/Análise da Imagem
-
-*   **Ação do Usuário (Frontend)**: O frontend abre a câmera. A criança toca no ícone de captura (📷) ou no ícone de fechar (X).
-*   **Backend Expectativa**:
-    *   Se a foto for tirada: O frontend enviará a imagem capturada, juntamente com o contexto da pergunta original (texto transcrito), para um endpoint do backend.
-    *   Se a câmera for fechada: O frontend sinalizará ao backend que a imagem não foi fornecida, e o backend deverá prosseguir sem ela.
-*   **Componente Backend**: [analisar_imagem_educacional](professor-virtual/professor_virtual/tools/analisar_imagem_educacional)
-    *   **Propósito**: Analisar uma imagem para extrair informações relevantes para a pergunta educacional.
-    *   **Entrada Esperada do Frontend**: Um arquivo de imagem (formato a ser definido, e.g., JPEG, PNG) e o texto da pergunta original (contexto).
-    *   **Saída para o Agente**: Informações extraídas da imagem ou um sinal de que a imagem é inadequada.
-    *   **Detalhes de Implementação**: A lógica de análise de imagem está em [analisar_imagem_educacional.py](professor-virtual/professor_virtual/tools/analisar_imagem_educacional/analisar_imagem_educacional.py).
-*   **Fallback Inteligente (Backend)**: O backend, através do agente ou da ferramenta de análise de imagem, é responsável por julgar a adequação da imagem. Se inadequada, o backend deve retornar uma resposta ao frontend indicando isso, possivelmente solicitando uma nova captura.
-
-### 2.4. Geração e Apresentação da Resposta (Texto e Áudio)
-
-*   **Ação do Usuário (Frontend)**: Nenhuma ação direta do usuário para a geração da resposta. Para o áudio completo, a criança toca no botão "Play" (▶️).
-*   **Backend Expectativa**: O backend gerará a resposta final e a enviará ao frontend. Para o áudio completo, o frontend fará uma nova requisição.
-*   **Componentes Backend**: [agent.py](professor-virtual/professor_virtual/agent.py) e [gerar_audio_tts](professor-virtual/professor_virtual/tools/gerar_audio_tts)
-    *   **Geração da Resposta Textual**:
-        *   **Propósito**: O agente principal combina todas as informações (texto da pergunta, análise da imagem) para gerar uma resposta educativa em texto.
-        *   **Entrada para o Agente**: Texto transcrito, resultados da análise de imagem (se houver).
-        *   **Saída para o Frontend**: A resposta textual completa.
-        *   **Detalhes de Implementação**: A lógica central de geração de resposta está em [agent.py](professor-virtual/professor_virtual/agent.py).
-    *   **Geração de Áudio TTS (Sob Demanda)**:
-        *   **Propósito**: Converter texto em áudio.
-        *   **Entrada Esperada do Frontend**: O texto da resposta que deve ser convertido em áudio.
-        *   **Saída para o Frontend**: Um arquivo de áudio (formato a ser definido, e.g., MP3).
-        *   **Detalhes de Implementação**: A lógica de geração de áudio TTS está em [gerar_audio_tts.py](professor-virtual/professor_virtual/tools/gerar_audio_tts/gerar_audio_tts.py).
-
-## 3. Considerações Adicionais para Integração Frontend
-
-### 3.1. Entidades e Modelos de Dados
-
-O frontend precisará interagir com as entidades definidas no backend, como [student.py](professor-virtual/professor_virtual/entities/student.py). Isso implica que o frontend precisará enviar e receber dados formatados de acordo com esses modelos (e.g., `student_id`).
-
-### 3.2. Callbacks e Fluxos de Processamento
-
-O diretório [professor-virtual/professor_virtual/shared_libraries/callbacks](professor-virtual/professor_virtual/shared_libraries/callbacks) contém lógicas que podem influenciar o fluxo de processamento no backend, como `rate_limit_callback` e `validate_student_id_callback`. O frontend deve estar ciente de possíveis respostas de erro ou validação que podem vir dessas callbacks.
-
-### 3.3. Configurações
-
-O arquivo [config.py](professor-virtual/professor_virtual/config.py) pode conter parâmetros que o frontend precisa conhecer ou que influenciam o comportamento do backend, como limites de tamanho de arquivo ou tempos limite.
-
-### 3.4. Estrutura de Comunicação
-
-Para cada interação do usuário, o frontend precisará fazer uma requisição HTTP (e.g., POST) para um endpoint específico do backend, enviando os dados necessários (áudio, imagem, texto). O backend responderá com o resultado do processamento. A comunicação deve ser assíncrona para não bloquear a UI.
-
-### 3.5. Tratamento de Erros
-
-O frontend deve estar preparado para lidar com diferentes tipos de erros retornados pelo backend (e.g., falha na transcrição, imagem inadequada, erro interno do servidor) e apresentar feedback adequado ao usuário.
-
-### 3.6. Otimização de Respostas
-
-Para a "Apresentação da Resposta e Áudio Contextual", o frontend deve exibir o texto imediatamente e tocar o áudio pré-gravado. A requisição para o áudio completo (TTS) deve ser feita apenas quando o usuário clicar no botão "Play", para otimizar o uso de recursos do backend.
-
+---
+---
