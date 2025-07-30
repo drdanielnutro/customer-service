@@ -1,0 +1,126 @@
+## MAPEAMENTO COMPLETO – PROFESSOR VIRTUAL
+
+*(versão revisada — alinhada ao novo sistema de artifacts, armazenamento GCS e fluxos assíncronos)*
+
+---
+
+### VISÃO GERAL
+
+1. **Audição → Transcrição**
+2. **Análise de texto → Decisão visual**
+3. **Captura de imagem (opcional)**
+4. **Upload → Criação de artifact**
+5. **Análise de imagem (opcional)**
+6. **Geração de resposta (texto + TTS sob demanda)**
+
+> **Dev vs Produção**
+> *Dev*: artifacts mantidos em memória (descartados ao reiniciar)
+> *Produção*: artifacts salvos no **GCS** (`gs://$GCS_BUCKET_NAME`) sob política de retenção ajustável.
+
+---
+
+## 1. FLUXO: INÍCIO DA INTERAÇÃO – AÇÃO DE FALAR
+
+| Etapa   | Ação                | Ator              | Detalhes                                          |
+| ------- | ------------------- | ----------------- | ------------------------------------------------- |
+| **1.1** | Pressionar botão 🎙 | Usuário (criança) | Mantém pressionado ⇒ inicia captura de áudio      |
+| **1.2** | Captura contínua    | Frontend          | Grava áudio enquanto o botão está pressionado     |
+| **1.3** | Soltar botão        | Usuário           | Frontend encerra a gravação e gera arquivo `.wav` |
+
+---
+
+## 2. FLUXO: UPLOAD E TRANSCRIÇÃO DA FALA
+
+| Etapa   | Ação               | Ator                          | Dados                                                                             | Resultado                          |
+| ------- | ------------------ | ----------------------------- | --------------------------------------------------------------------------------- | ---------------------------------- |
+| **2.1** | Empacotar áudio    | Frontend                      | Converte → Base64, JSON:<br>`{content, mime_type, filename, session_id, user_id}` | Pronto p/ upload                   |
+| **2.2** | **POST** `/upload` | Frontend                      | Payload JSON                                                                      | Backend chama `handle_file_upload` |
+| **2.3** | Criar artifact     | Backend                       | Salva via `save_artifact` (async)                                                 | Retorna `{filename, version}`      |
+| **2.4** | Confirmar upload   | Frontend                      | Recebe resposta                                                                   | Guarda `version` para uso futuro   |
+| **2.5** | Transcrever áudio  | Backend (`transcrever_audio`) | Lê artifact (`load_artifact`, await)                                              | Retorna texto transcrito           |
+
+---
+
+## 3. FLUXO: ANÁLISE DE TEXTO E DECISÃO VISUAL
+
+| Etapa   | Ação                        | Ator    | Descrição                                     |                                       |
+| ------- | --------------------------- | ------- | --------------------------------------------- | ------------------------------------- |
+| **3.1** | Detectar necessidade visual | Backend | Procura expressões como “esse exercício aqui” |                                       |
+| **3.2** | Decidir                     | Backend | **Se** alta confiança ⇒ sinaliza câmera       | Caso contrário ⇒ gera resposta direta |
+
+---
+
+## 4. FLUXO: CAPTURA DE IMAGEM (OPCIONAL)
+
+| Etapa     | Ação            | Ator     | Detalhes                                |
+| --------- | --------------- | -------- | --------------------------------------- |
+| **4.1**   | Abrir câmera    | Frontend | Imediato, sem pop‑up                    |
+| **4.2**   | Preview ao vivo | Frontend | Exibe visão da câmera                   |
+| **4.3.A** | Capturar 📷     | Usuário  | Foto instantânea, sem preview posterior |
+| **4.3.B** | Fechar X        | Usuário  | Cancela; backend continua sem imagem    |
+
+---
+
+## 5. FLUXO: UPLOAD E ANÁLISE DA IMAGEM
+
+| Etapa   | Ação                   | Ator                                    | Dados                                         | Resultado                                            |
+| ------- | ---------------------- | --------------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| **5.1** | Empacotar imagem       | Frontend                                | Base64 + JSON, inclui `contexto_pergunta`     |                                                      |
+| **5.2** | **POST** `/upload`     | Frontend                                | Payload JSON                                  | Backend cria artifact; devolve `{filename, version}` |
+| **5.3** | Confirmar upload       | Frontend                                | Guarda `version`                              |                                                      |
+| **5.4** | Analisar imagem        | Backend (`analisar_imagem_educacional`) | Busca artifact (`await load_artifact`)        | Extrai info + avalia qualidade                       |
+| **5.5** | Fallback se inadequada | Backend                                 | Solicita nova foto **ou** continua sem imagem |                                                      |
+
+---
+
+## 6. FLUXO: GERAÇÃO DA RESPOSTA
+
+| Etapa   | Ação              | Ator               | Inputs                                            | Saída                |
+| ------- | ----------------- | ------------------ | ------------------------------------------------- | -------------------- |
+| **6.1** | Combinar contexto | Backend            | Texto transcrito + insights da imagem (se houver) | Resposta estruturada |
+| **6.2** | Enviar resposta   | Backend → Frontend | JSON `{texto_resposta, sugestao_audio: bool}`     |                      |
+
+---
+
+## 7. FLUXO: APRESENTAÇÃO & ÁUDIO TTS
+
+| Etapa   | Ação                  | Ator            | Detalhes                                                                                     |   |
+| ------- | --------------------- | --------------- | -------------------------------------------------------------------------------------------- | - |
+| **7.1** | Exibir texto          | Frontend        | Mostra na tela                                                                               |   |
+| **7.2** | Tocar som curto       | Frontend        | “Prontinho!” (pré‑gravado)                                                                   |   |
+| **7.3** | Mostrar botão ▶️      | Frontend        | Se `sugestao_audio == true`                                                                  |   |
+| **7.4** | Gerar TTS sob demanda | Usuário toca ▶️ | Backend (`gerar_audio_tts`) cria artifact (`mp3`, retorna `version`); Frontend faz streaming |   |
+
+---
+
+## 8. COMPORTAMENTOS TRANSVERSAIS
+
+| Código                        | Tema                                                                                               | Descrição / Observação |
+| ----------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------- |
+| **A. Interação pontual**      | Eventos discretos; backend assíncrono (`await`)                                                    |                        |
+| **B. Redução de fricção**     | Câmera sem confirmação; **handshake de upload é transparente ao usuário**                          |                        |
+| **C. Multicanal otimizado**   | Som curto imediato; TTS on‑demand                                                                  |                        |
+| **D. Fallbacks robustos**     | Continua útil se áudio/imagem falharem                                                             |                        |
+| **E. Privacidade & Retenção** | **Dev**: artifacts em memória (efêmeros) <br> **Prod**: artifacts no GCS com retenção configurável |                        |
+
+---
+
+### NOTAS TÉCNICAS
+
+* Todas as tools `async def …` — usam `await load_artifact / save_artifact`.
+* Upload obrigatório via `handle_file_upload`; não usar APIs deprecated (`session.get_artifact`, etc.).
+* Frontend **deve** enviar `mime_type` correto e aguardar `{version}`.
+* Variáveis de ambiente regulam `memory` × `gcs`.
+
+---
+
+#### Checklist de Conformidade
+
+1. **Áudio**: Base64 → upload → artifact version → transcrição
+2. **Imagem**: Base64 → upload → artifact version → análise
+3. **TTS**: Gera mp3, devolve `nome` + `version`
+4. **Política de retenção** documentada quando em produção
+
+---
+
+> Documento atualizado em **29 jul 2025** para refletir a integração completa com Google ADK 1.5 e suporte a armazenamento GCS.
