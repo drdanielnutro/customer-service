@@ -39,3 +39,10 @@ class Config(BaseSettings):
     CLOUD_LOCATION: str = Field(default="us-central1")
     GENAI_USE_VERTEXAI: str = Field(default="1")
     API_KEY: str | None = Field(default="")
+
+    # Configurações do Artifact Service
+    artifact_storage_type: str = Field(default="memory", description="memory ou gcs")
+    gcs_bucket_name: str = Field(default="adk-professor-virtual-artifacts")
+
+    # Configuração de ambiente
+    is_production: bool = Field(default=False)
