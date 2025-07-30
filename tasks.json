@@ -124,7 +124,7 @@
       "id": 11,
       "title": "Review and update all helper functions and callbacks for async/await compliance",
       "description": "Ensure all internal helper functions and callbacks that interact with artifacts are properly converted to async and use await, as this is a critical step not covered by the main tool file modifications.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         3,
         4,
@@ -132,7 +132,12 @@
       ],
       "priority": "high",
       "details": "### Verificação **await** em helpers\n\nAlém dos arquivos listados, revise **todos** os *helpers* internos e callbacks para garantir:\n\n* funções que chamam `load_artifact` / `save_artifact` → `async def …`\n* chamadas precedidas de `await`\n\n> **Checklist rápido**\n>\n> * [_buscar_audio_na_mensagem] ✅ já alterado\n> * [_get_audio_hash] — permanece síncrono (não faz I/O)\n> * qualquer callback em `before_tool` / `after_tool` que use artifacts → tornar async",
-      "testStrategy": "Manually review all helper functions and callbacks (e.g., in `before_tool`, `after_tool`) to confirm that any function calling `load_artifact` or `save_artifact` is defined as `async def` and that the calls are preceded by `await`. Verify that `_get_audio_hash` remains synchronous as specified."
+      "testStrategy": "Manually review all helper functions and callbacks (e.g., in `before_tool`, `after_tool`) to confirm that any function calling `load_artifact` or `save_artifact` is defined as `async def` and that the calls are preceded by `await`. Verify that `_get_audio_hash` remains synchronous as specified.",
+      "started_at": "2025-07-30T23:44:14Z",
+      "completed_at": "2025-07-30T23:44:14Z",
+      "files_modified": [
+        "professor-virtual/professor_virtual/tools/transcrever_audio/transcrever_audio.py"
+      ]
     }
   ]
 }
