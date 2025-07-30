@@ -41,14 +41,14 @@ def _get_genai_client():
         return genai.Client(api_key=os.getenv('GOOGLE_API_KEY'))
 
 
-def analisar_imagem_educacional(nome_artefato_imagem: str, contexto_pergunta: str, tool_context: ToolContext) -> Dict[str, Any]:
+async def analisar_imagem_educacional(nome_artefato_imagem: str, contexto_pergunta: str, tool_context: ToolContext) -> Dict[str, Any]:
     """Extrai informações educacionais relevantes de uma imagem.
     
     Mantém 100% de compatibilidade com a assinatura original e adiciona análise real com Gemini Vision.
     """
     try:
-        # Obter artefato - mantém lógica original
-        artifact = tool_context.session.get_artifact(nome_artefato_imagem)
+        # Obter artefato usando API correta
+        artifact = await tool_context.load_artifact(nome_artefato_imagem)
         if not artifact:
             return {
                 "erro": f"Artefato de imagem '{nome_artefato_imagem}' não encontrado.", 
@@ -56,7 +56,16 @@ def analisar_imagem_educacional(nome_artefato_imagem: str, contexto_pergunta: st
                 "qualidade_adequada": False
             }
         
-        imagem_bytes = artifact.content
+        # Extrair dados do artifact corretamente
+        if hasattr(artifact, 'inline_data') and artifact.inline_data:
+            imagem_bytes = artifact.inline_data.data
+            mime_type = artifact.inline_data.mime_type
+        else:
+            return {
+                "erro": "Formato de artifact inválido",
+                "sucesso": False,
+                "qualidade_adequada": False
+            }
         
         # Validação de tamanho - mantém limite original
         if len(imagem_bytes) > 5 * 1024 * 1024:
