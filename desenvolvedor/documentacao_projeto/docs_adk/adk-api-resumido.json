@@ -1,0 +1,1182 @@
+{
+    "title": "Google ADK API Reference - Python",
+    "description": "Google Agent Development Kit (ADK) API documentation for Python",
+    "modules": {
+        "google.adk.agents": {
+            "description": "Module containing agent classes for the Google ADK",
+            "classes": {
+                "BaseAgent": {
+                    "description": "Base class for all agents in Agent Development Kit",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "name": {
+                            "type": "str",
+                            "required": true,
+                            "description": "The agent's name. Must be a Python identifier and unique within the agent tree. Cannot be 'user'."
+                        },
+                        "description": {
+                            "type": "str",
+                            "default": "",
+                            "description": "Description about the agent's capability. Used by the model to determine whether to delegate control."
+                        },
+                        "parent_agent": {
+                            "type": "Optional[BaseAgent]",
+                            "default": null,
+                            "description": "The parent agent of this agent. An agent can only be added as sub-agent once."
+                        },
+                        "sub_agents": {
+                            "type": "list[BaseAgent]",
+                            "description": "The sub-agents of this agent"
+                        },
+                        "before_agent_callback": {
+                            "type": "Optional[BeforeAgentCallback]",
+                            "default": null,
+                            "description": "Callback invoked before the agent run"
+                        },
+                        "after_agent_callback": {
+                            "type": "Optional[AfterAgentCallback]",
+                            "default": null,
+                            "description": "Callback invoked after the agent run"
+                        }
+                    },
+                    "methods": {
+                        "find_agent": {
+                            "description": "Finds the agent with the given name in this agent and its descendants",
+                            "parameters": {
+                                "name": "str"
+                            },
+                            "return_type": "Optional[BaseAgent]"
+                        },
+                        "find_sub_agent": {
+                            "description": "Finds the agent with the given name in this agent's descendants",
+                            "parameters": {
+                                "name": "str"
+                            },
+                            "return_type": "Optional[BaseAgent]"
+                        },
+                        "run_async": {
+                            "description": "Entry method to run an agent via text-based conversation",
+                            "parameters": {
+                                "parent_context": "InvocationContext"
+                            },
+                            "return_type": "AsyncGenerator[Event, None]"
+                        },
+                        "run_live": {
+                            "description": "Entry method to run an agent via video/audio-based conversation",
+                            "parameters": {
+                                "parent_context": "InvocationContext"
+                            },
+                            "return_type": "AsyncGenerator[Event, None]"
+                        }
+                    }
+                },
+                "LlmAgent": {
+                    "description": "LLM-based Agent",
+                    "base_class": "BaseAgent",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "model": {
+                            "type": "Union[str, BaseLlm]",
+                            "default": "",
+                            "description": "The model to use for the agent. When not set, inherits from ancestor."
+                        },
+                        "instruction": {
+                            "type": "Union[str, InstructionProvider]",
+                            "default": "",
+                            "description": "Instructions for the LLM model, guiding the agent's behavior"
+                        },
+                        "global_instruction": {
+                            "type": "Union[str, InstructionProvider]",
+                            "default": "",
+                            "description": "Instructions for all agents in the entire agent tree. Only takes effect in root agent."
+                        },
+                        "tools": {
+                            "type": "list[ToolUnion]",
+                            "description": "Tools available to this agent"
+                        },
+                        "generate_content_config": {
+                            "type": "Optional[types.GenerateContentConfig]",
+                            "default": null,
+                            "description": "Additional content generation configurations"
+                        },
+                        "disallow_transfer_to_parent": {
+                            "type": "bool",
+                            "default": false,
+                            "description": "Disallows LLM-controlled transferring to the parent agent"
+                        },
+                        "disallow_transfer_to_peers": {
+                            "type": "bool",
+                            "default": false,
+                            "description": "Disallows LLM-controlled transferring to the peer agents"
+                        },
+                        "include_contents": {
+                            "type": "Literal['default', 'none']",
+                            "default": "default",
+                            "description": "Whether to include contents in the model request"
+                        },
+                        "input_schema": {
+                            "type": "Optional[type[BaseModel]]",
+                            "default": null,
+                            "description": "The input schema when agent is used as a tool"
+                        },
+                        "output_schema": {
+                            "type": "Optional[type[BaseModel]]",
+                            "default": null,
+                            "description": "The output schema when agent replies"
+                        },
+                        "output_key": {
+                            "type": "Optional[str]",
+                            "default": null,
+                            "description": "Key in session state to store agent output"
+                        },
+                        "planner": {
+                            "type": "Optional[BasePlanner]",
+                            "default": null,
+                            "description": "Instructs the agent to make a plan and execute it step by step"
+                        },
+                        "code_executor": {
+                            "type": "Optional[BaseCodeExecutor]",
+                            "default": null,
+                            "description": "Allow agent to execute code blocks from model responses"
+                        },
+                        "examples": {
+                            "type": "Optional[ExamplesUnion]",
+                            "default": null,
+                            "description": "Few-shot examples for the agent"
+                        },
+                        "before_model_callback": {
+                            "type": "Optional[BeforeModelCallback]",
+                            "default": null,
+                            "description": "Callback(s) called before calling the LLM"
+                        },
+                        "after_model_callback": {
+                            "type": "Optional[AfterModelCallback]",
+                            "default": null,
+                            "description": "Callback(s) called after calling the LLM"
+                        },
+                        "before_tool_callback": {
+                            "type": "Optional[BeforeToolCallback]",
+                            "default": null,
+                            "description": "Called before the tool is called"
+                        },
+                        "after_tool_callback": {
+                            "type": "Optional[AfterToolCallback]",
+                            "default": null,
+                            "description": "Called after the tool is called"
+                        }
+                    }
+                },
+                "LoopAgent": {
+                    "description": "A shell agent that runs its sub-agents in a loop until escalation or max_iterations reached",
+                    "base_class": "BaseAgent",
+                    "fields": {
+                        "max_iterations": {
+                            "type": "Optional[int]",
+                            "default": null,
+                            "description": "Maximum number of iterations. If not set, runs indefinitely until escalation."
+                        }
+                    }
+                },
+                "ParallelAgent": {
+                    "description": "A shell agent that runs its sub-agents in parallel in isolated manner. Useful for multiple perspectives or attempts on a single task.",
+                    "base_class": "BaseAgent"
+                },
+                "SequentialAgent": {
+                    "description": "A shell agent that runs its sub-agents in sequence",
+                    "base_class": "BaseAgent"
+                }
+            }
+        },
+        "google.adk.artifacts": {
+            "description": "Module for artifact management services",
+            "classes": {
+                "BaseArtifactService": {
+                    "description": "Abstract base class for artifact services",
+                    "type": "abstract",
+                    "methods": {
+                        "save_artifact": {
+                            "description": "Saves an artifact to storage",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str",
+                                "filename": "str",
+                                "artifact": "Part"
+                            },
+                            "return_type": "int"
+                        },
+                        "load_artifact": {
+                            "description": "Gets an artifact from storage",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str",
+                                "filename": "str",
+                                "version": "Optional[int]"
+                            },
+                            "return_type": "Optional[Part]"
+                        },
+                        "list_artifact_keys": {
+                            "description": "Lists all artifact filenames within a session",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str"
+                            },
+                            "return_type": "list[str]"
+                        },
+                        "list_versions": {
+                            "description": "Lists all versions of an artifact",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str",
+                                "filename": "str"
+                            },
+                            "return_type": "list[int]"
+                        },
+                        "delete_artifact": {
+                            "description": "Deletes an artifact",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str",
+                                "filename": "str"
+                            },
+                            "return_type": "None"
+                        }
+                    }
+                },
+                "InMemoryArtifactService": {
+                    "description": "An in-memory implementation of the artifact service",
+                    "base_class": "BaseArtifactService",
+                    "fields": {
+                        "artifacts": {
+                            "type": "dict[str, list[Part]]",
+                            "description": "In-memory storage for artifacts"
+                        }
+                    }
+                },
+                "GcsArtifactService": {
+                    "description": "An artifact service implementation using Google Cloud Storage (GCS)",
+                    "base_class": "BaseArtifactService",
+                    "constructor_params": {
+                        "bucket_name": "str",
+                        "**kwargs": "Keyword arguments for GCS client"
+                    }
+                }
+            }
+        },
+        "google.adk.code_executors": {
+            "description": "Module for code execution functionality",
+            "classes": {
+                "BaseCodeExecutor": {
+                    "description": "Abstract base class for all code executors",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "optimize_data_file": {
+                            "type": "bool",
+                            "default": false,
+                            "description": "If true, extract and process data files from model request. Supports text/csv."
+                        },
+                        "stateful": {
+                            "type": "bool",
+                            "default": false,
+                            "description": "Whether the code executor is stateful"
+                        },
+                        "error_retry_attempts": {
+                            "type": "int",
+                            "default": 2,
+                            "description": "Number of retry attempts on consecutive code execution errors"
+                        },
+                        "code_block_delimiters": {
+                            "type": "List[tuple[str, str]]",
+                            "default": [
+                                [
+                                    "```tool_code\\n",
+                                    "\\n```"
+                                ],
+                                [
+                                    "```python\\n",
+                                    "\\n```"
+                                ]
+                            ],
+                            "description": "Enclosing delimiters to identify code blocks"
+                        },
+                        "execution_result_delimiters": {
+                            "type": "tuple[str, str]",
+                            "default": [
+                                "```tool_output\\n",
+                                "\\n```"
+                            ],
+                            "description": "Delimiters to format code execution result"
+                        }
+                    },
+                    "methods": {
+                        "execute_code": {
+                            "description": "Executes code and returns result",
+                            "parameters": {
+                                "invocation_context": "InvocationContext",
+                                "code_execution_input": "CodeExecutionInput"
+                            },
+                            "return_type": "CodeExecutionResult",
+                            "abstract": true
+                        }
+                    }
+                },
+                "UnsafeLocalCodeExecutor": {
+                    "description": "A code executor that unsafely executes code in the current local context",
+                    "base_class": "BaseCodeExecutor"
+                },
+                "ContainerCodeExecutor": {
+                    "description": "A code executor that uses a custom container to execute code",
+                    "base_class": "BaseCodeExecutor",
+                    "fields": {
+                        "base_url": {
+                            "type": "Optional[str]",
+                            "default": null,
+                            "description": "Base URL of user hosted Docker client"
+                        },
+                        "image": {
+                            "type": "str",
+                            "description": "Tag of predefined or custom image to run on container"
+                        },
+                        "docker_path": {
+                            "type": "str",
+                            "description": "Path to directory containing Dockerfile"
+                        }
+                    }
+                },
+                "VertexAiCodeExecutor": {
+                    "description": "A code executor that uses Vertex Code Interpreter Extension",
+                    "base_class": "BaseCodeExecutor",
+                    "fields": {
+                        "resource_name": {
+                            "type": "str",
+                            "description": "Resource name of code interpreter extension. Format: projects/123/locations/us-central1/extensions/456"
+                        }
+                    }
+                }
+            }
+        },
+        "google.adk.evaluation": {
+            "description": "Module for agent evaluation functionality",
+            "classes": {
+                "AgentEvaluator": {
+                    "description": "An evaluator for Agents, mainly intended for helping with test cases",
+                    "methods": {
+                        "evaluate": {
+                            "description": "Evaluates an Agent given eval data",
+                            "parameters": {
+                                "agent_module": "str - Path to python module containing agent",
+                                "eval_dataset_file_path_or_dir": "str - Path to eval dataset file or directory",
+                                "num_runs": "int = 2",
+                                "agent_name": "Optional[str]",
+                                "initial_session_file": "Optional[str]"
+                            },
+                            "static": true
+                        }
+                    }
+                }
+            }
+        },
+        "google.adk.events": {
+            "description": "Module for event handling",
+            "classes": {
+                "Event": {
+                    "description": "Represents an event in a conversation between agents and users",
+                    "base_class": "LlmResponse",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "invocation_id": {
+                            "type": "str",
+                            "default": "",
+                            "description": "The invocation ID of the event"
+                        },
+                        "author": {
+                            "type": "str",
+                            "required": true,
+                            "description": "'user' or agent name, indicating who appended the event"
+                        },
+                        "actions": {
+                            "type": "EventActions",
+                            "description": "The actions taken by the agent"
+                        },
+                        "long_running_tool_ids": {
+                            "type": "Optional[set[str]]",
+                            "description": "IDs of long running function calls"
+                        },
+                        "branch": {
+                            "type": "Optional[str]",
+                            "description": "The branch of the event (e.g., agent_1.agent_2.agent_3)"
+                        },
+                        "id": {
+                            "type": "str",
+                            "default": "",
+                            "description": "Unique identifier of the event"
+                        },
+                        "timestamp": {
+                            "type": "float",
+                            "description": "Timestamp of the event"
+                        }
+                    },
+                    "methods": {
+                        "get_function_calls": {
+                            "description": "Returns the function calls in the event",
+                            "return_type": "list[FunctionCall]"
+                        },
+                        "get_function_responses": {
+                            "description": "Returns the function responses in the event",
+                            "return_type": "list[FunctionResponse]"
+                        },
+                        "is_final_response": {
+                            "description": "Returns whether the event is the final response",
+                            "return_type": "bool"
+                        }
+                    }
+                },
+                "EventActions": {
+                    "description": "Represents the actions attached to an event",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "skip_summarization": {
+                            "type": "Optional[bool]",
+                            "description": "If true, won't call model to summarize function response"
+                        },
+                        "state_delta": {
+                            "type": "dict[str, object]",
+                            "description": "Updates state with given delta"
+                        },
+                        "artifact_delta": {
+                            "type": "dict[str, int]",
+                            "description": "Updates artifact. Key is filename, value is version."
+                        },
+                        "transfer_to_agent": {
+                            "type": "Optional[str]",
+                            "description": "If set, transfers to specified agent"
+                        },
+                        "escalate": {
+                            "type": "Optional[bool]",
+                            "description": "Agent is escalating to higher level agent"
+                        },
+                        "requested_auth_configs": {
+                            "type": "dict[str, AuthConfig]",
+                            "description": "Authentication configurations requested by tool responses"
+                        }
+                    }
+                }
+            }
+        },
+        "google.adk.examples": {
+            "description": "Module for example management",
+            "classes": {
+                "Example": {
+                    "description": "A few-shot example",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "input": {
+                            "type": "Content",
+                            "required": true,
+                            "description": "The input content for the example"
+                        },
+                        "output": {
+                            "type": "list[Content]",
+                            "required": true,
+                            "description": "The expected output content for the example"
+                        }
+                    }
+                },
+                "BaseExampleProvider": {
+                    "description": "Base class for example providers",
+                    "type": "abstract"
+                },
+                "VertexAiExampleStore": {
+                    "description": "Provides examples from Vertex example store",
+                    "base_class": "BaseExampleProvider",
+                    "constructor_params": {
+                        "examples_store_name": "str - Format: projects/{project}/locations/{location}/exampleStores/{example_store}"
+                    }
+                }
+            }
+        },
+        "google.adk.memory": {
+            "description": "Module for memory services",
+            "classes": {
+                "BaseMemoryService": {
+                    "description": "Base class for memory services",
+                    "type": "abstract",
+                    "methods": {
+                        "add_session_to_memory": {
+                            "description": "Adds a session to the memory service",
+                            "parameters": {
+                                "session": "Session"
+                            },
+                            "return_type": "None",
+                            "abstract": true
+                        },
+                        "search_memory": {
+                            "description": "Searches for sessions that match the query",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "query": "str"
+                            },
+                            "return_type": "SearchMemoryResponse",
+                            "abstract": true
+                        }
+                    }
+                },
+                "InMemoryMemoryService": {
+                    "description": "An in-memory memory service for prototyping. Uses keyword matching instead of semantic search.",
+                    "base_class": "BaseMemoryService"
+                },
+                "VertexAiRagMemoryService": {
+                    "description": "A memory service that uses Vertex AI RAG for storage and retrieval",
+                    "base_class": "BaseMemoryService",
+                    "constructor_params": {
+                        "rag_corpus": "str - Format: projects/{project}/locations/{location}/ragCorpora/{rag_corpus_id}",
+                        "similarity_top_k": "Optional[int]",
+                        "vector_distance_threshold": "float = 10"
+                    }
+                }
+            }
+        },
+        "google.adk.models": {
+            "description": "Module defining the interface to support models",
+            "classes": {
+                "BaseLlm": {
+                    "description": "The base LLM class",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "model": {
+                            "type": "str",
+                            "required": true,
+                            "description": "Name of the LLM (e.g., gemini-1.5-flash)"
+                        }
+                    },
+                    "methods": {
+                        "supported_models": {
+                            "description": "Returns list of supported models in regex",
+                            "return_type": "list[str]",
+                            "static": true
+                        },
+                        "connect": {
+                            "description": "Creates a live connection to the LLM",
+                            "parameters": {
+                                "llm_request": "LlmRequest"
+                            },
+                            "return_type": "BaseLlmConnection"
+                        },
+                        "generate_content_async": {
+                            "description": "Generates content from given contents and tools",
+                            "parameters": {
+                                "llm_request": "LlmRequest",
+                                "stream": "bool = False"
+                            },
+                            "return_type": "AsyncGenerator[LlmResponse, None]",
+                            "abstract": true
+                        }
+                    }
+                },
+                "Gemini": {
+                    "description": "Integration for Gemini models",
+                    "base_class": "BaseLlm",
+                    "fields": {
+                        "model": {
+                            "type": "str",
+                            "default": "gemini-1.5-flash",
+                            "description": "Name of the Gemini model"
+                        }
+                    }
+                },
+                "LLMRegistry": {
+                    "description": "Registry for LLMs",
+                    "methods": {
+                        "new_llm": {
+                            "description": "Creates a new LLM instance",
+                            "parameters": {
+                                "model": "str"
+                            },
+                            "return_type": "BaseLlm",
+                            "static": true
+                        },
+                        "register": {
+                            "description": "Registers a new LLM class",
+                            "parameters": {
+                                "llm_cls": "Type[BaseLlm]"
+                            },
+                            "static": true
+                        }
+                    }
+                }
+            }
+        },
+        "google.adk.planners": {
+            "description": "Module for planning functionality",
+            "classes": {
+                "BasePlanner": {
+                    "description": "Abstract base class for all planners",
+                    "type": "abstract",
+                    "methods": {
+                        "build_planning_instruction": {
+                            "description": "Builds system instruction for planning",
+                            "parameters": {
+                                "readonly_context": "ReadonlyContext",
+                                "llm_request": "LlmRequest"
+                            },
+                            "return_type": "Optional[str]",
+                            "abstract": true
+                        },
+                        "process_planning_response": {
+                            "description": "Processes the LLM response for planning",
+                            "parameters": {
+                                "callback_context": "CallbackContext",
+                                "response_parts": "List[Part]"
+                            },
+                            "return_type": "Optional[List[Part]]",
+                            "abstract": true
+                        }
+                    }
+                },
+                "BuiltInPlanner": {
+                    "description": "Built-in planner that uses model's built-in thinking features",
+                    "base_class": "BasePlanner",
+                    "constructor_params": {
+                        "thinking_config": "ThinkingConfig"
+                    }
+                },
+                "PlanReActPlanner": {
+                    "description": "Plan-Re-Act planner that constrains LLM to generate plan before action",
+                    "base_class": "BasePlanner"
+                }
+            }
+        },
+        "google.adk.runners": {
+            "description": "Module for running agents",
+            "classes": {
+                "Runner": {
+                    "description": "The Runner class manages agent execution within a session",
+                    "constructor_params": {
+                        "app_name": "str",
+                        "agent": "BaseAgent",
+                        "artifact_service": "Optional[BaseArtifactService]",
+                        "session_service": "BaseSessionService",
+                        "memory_service": "Optional[BaseMemoryService]"
+                    },
+                    "methods": {
+                        "run": {
+                            "description": "Runs the agent (sync interface for testing)",
+                            "parameters": {
+                                "user_id": "str",
+                                "session_id": "str",
+                                "new_message": "Message",
+                                "run_config": "RunConfig"
+                            },
+                            "return_type": "Generator[Event, None, None]"
+                        },
+                        "run_async": {
+                            "description": "Main entry method to run agent",
+                            "parameters": {
+                                "user_id": "str",
+                                "session_id": "str",
+                                "new_message": "Message",
+                                "run_config": "RunConfig"
+                            },
+                            "return_type": "AsyncGenerator[Event, None]"
+                        },
+                        "run_live": {
+                            "description": "Runs agent in live mode (experimental)",
+                            "parameters": {
+                                "session": "Session",
+                                "live_request_queue": "Queue",
+                                "run_config": "RunConfig"
+                            },
+                            "return_type": "AsyncGenerator[Event, None]"
+                        },
+                        "close_session": {
+                            "description": "Closes session and adds to memory service",
+                            "parameters": {
+                                "session": "Session"
+                            }
+                        }
+                    }
+                },
+                "InMemoryRunner": {
+                    "description": "In-memory Runner for testing and development",
+                    "base_class": "Runner",
+                    "constructor_params": {
+                        "agent": "BaseAgent",
+                        "app_name": "str = 'InMemoryRunner'"
+                    }
+                }
+            }
+        },
+        "google.adk.sessions": {
+            "description": "Module for session management",
+            "classes": {
+                "Session": {
+                    "description": "Represents a series of interactions between a user and agents",
+                    "type": "pydantic_model",
+                    "fields": {
+                        "id": {
+                            "type": "str",
+                            "required": true,
+                            "description": "Unique identifier of the session"
+                        },
+                        "app_name": {
+                            "type": "str",
+                            "required": true,
+                            "description": "Name of the app"
+                        },
+                        "user_id": {
+                            "type": "str",
+                            "required": true,
+                            "description": "ID of the user"
+                        },
+                        "state": {
+                            "type": "dict[str, Any]",
+                            "description": "State of the session"
+                        },
+                        "events": {
+                            "type": "list[Event]",
+                            "description": "Events of the session"
+                        },
+                        "last_update_time": {
+                            "type": "float",
+                            "default": 0.0,
+                            "description": "Last update time of the session"
+                        }
+                    }
+                },
+                "BaseSessionService": {
+                    "description": "Base class for session services",
+                    "type": "abstract",
+                    "methods": {
+                        "create_session": {
+                            "description": "Creates a new session",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "state": "Optional[dict]",
+                                "session_id": "Optional[str]"
+                            },
+                            "return_type": "Session",
+                            "abstract": true
+                        },
+                        "get_session": {
+                            "description": "Gets a session",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str",
+                                "config": "Optional[dict]"
+                            },
+                            "return_type": "Optional[Session]",
+                            "abstract": true
+                        },
+                        "delete_session": {
+                            "description": "Deletes a session",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str"
+                            },
+                            "return_type": "None",
+                            "abstract": true
+                        },
+                        "list_sessions": {
+                            "description": "Lists all sessions",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str"
+                            },
+                            "return_type": "ListSessionsResponse",
+                            "abstract": true
+                        },
+                        "list_events": {
+                            "description": "Lists events in a session",
+                            "parameters": {
+                                "app_name": "str",
+                                "user_id": "str",
+                                "session_id": "str"
+                            },
+                            "return_type": "ListEventsResponse",
+                            "abstract": true
+                        }
+                    }
+                },
+                "InMemorySessionService": {
+                    "description": "An in-memory implementation of session service",
+                    "base_class": "BaseSessionService"
+                },
+                "DatabaseSessionService": {
+                    "description": "A session service that uses a database for storage",
+                    "base_class": "BaseSessionService",
+                    "constructor_params": {
+                        "db_url": "str"
+                    }
+                },
+                "VertexAiSessionService": {
+                    "description": "Connects to the managed Vertex AI Session Service",
+                    "base_class": "BaseSessionService",
+                    "constructor_params": {
+                        "project": "Optional[str]",
+                        "location": "Optional[str]"
+                    }
+                },
+                "State": {
+                    "description": "A state dict that maintains current value and pending-commit delta",
+                    "constants": {
+                        "APP_PREFIX": "app:",
+                        "USER_PREFIX": "user:",
+                        "TEMP_PREFIX": "temp:"
+                    },
+                    "methods": {
+                        "get": {
+                            "description": "Returns value for given key",
+                            "parameters": {
+                                "key": "str",
+                                "default": "Any = None"
+                            },
+                            "return_type": "Any"
+                        },
+                        "update": {
+                            "description": "Updates state dict with given delta",
+                            "parameters": {
+                                "delta": "dict"
+                            }
+                        },
+                        "has_delta": {
+                            "description": "Whether state has pending delta",
+                            "return_type": "bool"
+                        },
+                        "to_dict": {
+                            "description": "Returns the state dict",
+                            "return_type": "dict[str, Any]"
+                        }
+                    }
+                }
+            }
+        },
+        "google.adk.tools": {
+            "description": "Package containing various tools for agents",
+            "classes": {
+                "BaseTool": {
+                    "description": "The base class for all tools",
+                    "type": "abstract",
+                    "fields": {
+                        "name": {
+                            "type": "str",
+                            "description": "Name of the tool"
+                        },
+                        "description": {
+                            "type": "str",
+                            "description": "Description of the tool"
+                        },
+                        "is_long_running": {
+                            "type": "bool",
+                            "default": false,
+                            "description": "Whether tool is long running operation"
+                        }
+                    },
+                    "methods": {
+                        "process_llm_request": {
+                            "description": "Processes outgoing LLM request for this tool",
+                            "parameters": {
+                                "tool_context": "ToolContext",
+                                "llm_request": "LlmRequest"
+                            },
+                            "return_type": "None"
+                        },
+                        "run_async": {
+                            "description": "Runs the tool with given arguments",
+                            "parameters": {
+                                "args": "dict",
+                                "tool_context": "ToolContext"
+                            },
+                            "return_type": "Any"
+                        }
+                    }
+                },
+                "FunctionTool": {
+                    "description": "A tool that wraps a user-defined Python function",
+                    "base_class": "BaseTool",
+                    "constructor_params": {
+                        "func": "Callable"
+                    }
+                },
+                "LongRunningFunctionTool": {
+                    "description": "A function tool that returns result asynchronously",
+                    "base_class": "FunctionTool"
+                },
+                "ExampleTool": {
+                    "description": "A tool that adds few-shot examples to LLM request",
+                    "base_class": "BaseTool",
+                    "constructor_params": {
+                        "examples": "List[Example]"
+                    }
+                },
+                "VertexAiSearchTool": {
+                    "description": "A built-in tool using Vertex AI Search",
+                    "base_class": "BaseTool",
+                    "constructor_params": {
+                        "data_store_id": "Optional[str]",
+                        "search_engine_id": "Optional[str]"
+                    }
+                },
+                "APIHubToolset": {
+                    "description": "Generates tools from API Hub resource",
+                    "constructor_params": {
+                        "apihub_resource_name": "str",
+                        "access_token": "Optional[str]",
+                        "service_account_json": "Optional[str]",
+                        "name": "str = ''",
+                        "description": "str = ''",
+                        "lazy_load_spec": "bool = False",
+                        "auth_scheme": "Optional[AuthScheme]",
+                        "auth_credential": "Optional[AuthCredential]",
+                        "apihub_client": "Optional[Client]"
+                    },
+                    "methods": {
+                        "get_tool": {
+                            "description": "Retrieves a specific tool by name",
+                            "parameters": {
+                                "name": "str"
+                            },
+                            "return_type": "Optional[RestApiTool]"
+                        },
+                        "get_tools": {
+                            "description": "Retrieves all available tools",
+                            "return_type": "List[RestApiTool]"
+                        }
+                    }
+                },
+                "RestApiTool": {
+                    "description": "A generic tool that interacts with REST API",
+                    "base_class": "BaseTool",
+                    "constructor_params": {
+                        "name": "str",
+                        "description": "str",
+                        "endpoint": "dict",
+                        "operation": "dict",
+                        "auth_scheme": "Optional[AuthScheme]",
+                        "auth_credential": "Optional[AuthCredential]",
+                        "should_parse_operation": "bool = True"
+                    },
+                    "methods": {
+                        "from_parsed_operation": {
+                            "description": "Initializes from ParsedOperation object",
+                            "parameters": {
+                                "parsed": "ParsedOperation"
+                            },
+                            "return_type": "RestApiTool",
+                            "static": true
+                        }
+                    }
+                },
+                "OpenAPIToolset": {
+                    "description": "Parses OpenAPI spec into list of RestApiTool",
+                    "constructor_params": {
+                        "spec_dict": "Optional[dict]",
+                        "spec_str": "Optional[str]",
+                        "spec_str_type": "str = 'json'",
+                        "auth_scheme": "Optional[AuthScheme]",
+                        "auth_credential": "Optional[AuthCredential]"
+                    },
+                    "methods": {
+                        "get_tool": {
+                            "description": "Get a tool by name",
+                            "parameters": {
+                                "tool_name": "str"
+                            },
+                            "return_type": "Optional[RestApiTool]"
+                        },
+                        "get_tools": {
+                            "description": "Get all tools in the toolset",
+                            "return_type": "List[RestApiTool]"
+                        }
+                    }
+                },
+                "MCPToolset": {
+                    "description": "Connects to MCP Server and retrieves MCP Tools into ADK Tools",
+                    "constructor_params": {
+                        "connection_params": "Union[StdioServerParameters, SseServerParams]",
+                        "errlog": "IO = stderr",
+                        "exit_stack": "AsyncExitStack"
+                    },
+                    "methods": {
+                        "from_server": {
+                            "description": "Retrieve all tools from MCP connection",
+                            "parameters": {
+                                "connection_params": "Union[StdioServerParameters, SseServerParams]",
+                                "async_exit_stack": "Optional[AsyncExitStack]",
+                                "errlog": "IO = stderr"
+                            },
+                            "return_type": "Tuple[List[MCPTool], AsyncExitStack]",
+                            "static": true
+                        }
+                    }
+                },
+                "ToolContext": {
+                    "description": "The context of the tool",
+                    "base_class": "CallbackContext",
+                    "fields": {
+                        "invocation_context": {
+                            "type": "InvocationContext",
+                            "description": "The invocation context of the tool"
+                        },
+                        "function_call_id": {
+                            "type": "Optional[str]",
+                            "description": "Function call ID of current tool call"
+                        },
+                        "event_actions": {
+                            "type": "Optional[EventActions]",
+                            "description": "Event actions of current tool call"
+                        }
+                    },
+                    "methods": {
+                        "request_credential": {
+                            "description": "Request authentication credential",
+                            "parameters": {
+                                "auth_config": "AuthConfig"
+                            },
+                            "return_type": "None"
+                        },
+                        "get_auth_response": {
+                            "description": "Get authentication response",
+                            "parameters": {
+                                "auth_config": "AuthConfig"
+                            },
+                            "return_type": "AuthCredential"
+                        },
+                        "list_artifacts": {
+                            "description": "Lists artifact filenames in current session",
+                            "return_type": "list[str]"
+                        },
+                        "search_memory": {
+                            "description": "Searches memory of current user",
+                            "parameters": {
+                                "query": "str"
+                            },
+                            "return_type": "SearchMemoryResponse"
+                        }
+                    }
+                }
+            },
+            "functions": {
+                "exit_loop": {
+                    "description": "Exits the loop. Call only when instructed.",
+                    "parameters": {
+                        "tool_context": "ToolContext"
+                    }
+                },
+                "transfer_to_agent": {
+                    "description": "Transfer question to another agent",
+                    "parameters": {
+                        "agent_name": "str",
+                        "tool_context": "ToolContext"
+                    }
+                }
+            },
+            "submodules": {
+                "retrieval": {
+                    "description": "Retrieval tools",
+                    "classes": {
+                        "BaseRetrievalTool": {
+                            "description": "Base class for retrieval tools",
+                            "base_class": "BaseTool"
+                        },
+                        "LlamaIndexRetrieval": {
+                            "description": "Retrieval tool using LlamaIndex",
+                            "base_class": "BaseRetrievalTool",
+                            "constructor_params": {
+                                "name": "str",
+                                "description": "str",
+                                "retriever": "Retriever"
+                            }
+                        },
+                        "FilesRetrieval": {
+                            "description": "Retrieval tool for files",
+                            "base_class": "LlamaIndexRetrieval",
+                            "constructor_params": {
+                                "name": "str",
+                                "description": "str",
+                                "input_dir": "str"
+                            }
+                        },
+                        "VertexAiRagRetrieval": {
+                            "description": "Retrieval tool using Vertex AI RAG",
+                            "base_class": "BaseRetrievalTool",
+                            "constructor_params": {
+                                "name": "str",
+                                "description": "str",
+                                "rag_corpora": "Optional[List[str]]",
+                                "rag_resources": "Optional[List[dict]]",
+                                "similarity_top_k": "Optional[int]",
+                                "vector_distance_threshold": "Optional[float]"
+                            }
+                        }
+                    }
+                },
+                "application_integration_tool": {
+                    "description": "Application Integration tools",
+                    "classes": {
+                        "ApplicationIntegrationToolset": {
+                            "description": "Generates tools from Application Integration or Integration Connector resource",
+                            "constructor_params": {
+                                "project": "str",
+                                "location": "str",
+                                "integration": "Optional[str]",
+                                "triggers": "Optional[List[str]]",
+                                "connection": "Optional[str]",
+                                "entity_operations": "Optional[dict]",
+                                "actions": "Optional[List[str]]",
+                                "tool_name": "str = ''",
+                                "tool_instructions": "str = ''",
+                                "service_account_json": "Optional[dict]"
+                            },
+                            "methods": {
+                                "get_tools": {
+                                    "description": "Get all available tools",
+                                    "return_type": "List[RestApiTool]"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "usage_examples": {
+        "basic_agent": {
+            "description": "Creating a basic LLM agent",
+            "code": "agent = LlmAgent(\n    name=\"my_agent\",\n    model=\"gemini-1.5-flash\",\n    instruction=\"You are a helpful assistant\"\n)"
+        },
+        "agent_with_tools": {
+            "description": "Creating an agent with tools",
+            "code": "agent = LlmAgent(\n    name=\"tool_agent\",\n    tools=[\n        FunctionTool(my_function),\n        VertexAiSearchTool(data_store_id=\"...\")\n    ]\n)"
+        },
+        "running_agent": {
+            "description": "Running an agent with InMemoryRunner",
+            "code": "runner = InMemoryRunner(agent)\nasync for event in runner.run_async(\n    user_id=\"user123\",\n    session_id=\"session456\",\n    new_message=\"Hello!\"\n):\n    print(event)"
+        },
+        "openapi_tools": {
+            "description": "Using OpenAPI tools",
+            "code": "openapi_toolset = OpenAPIToolset(spec_str=openapi_spec_str)\nagent = LlmAgent(\n    tools=[*openapi_toolset.get_tools()]\n)"
+        },
+        "mcp_tools": {
+            "description": "Using MCP tools",
+            "code": "async def load_tools():\n    return await MCPToolset.from_server(\n        connection_params=StdioServerParameters(\n            command='npx',\n            args=[\"-y\", \"@modelcontextprotocol/server-filesystem\"]\n        )\n    )\n\ntools, exit_stack = await load_tools()\nagent = LlmAgent(tools=tools)"
+        }
+    },
+    "key_concepts": {
+        "agents": "Agents are the core building blocks that process user input and generate responses. They can have sub-agents, tools, and callbacks.",
+        "tools": "Tools extend agent capabilities by allowing them to perform actions like web search, code execution, or API calls.",
+        "sessions": "Sessions maintain conversation state and history between users and agents.",
+        "events": "Events represent interactions in a conversation, including messages, function calls, and actions.",
+        "runners": "Runners manage the execution of agents within sessions, handling message processing and event generation.",
+        "artifacts": "Artifacts are files that can be saved and retrieved during agent conversations.",
+        "memory": "Memory services allow agents to store and search through past conversations.",
+        "planners": "Planners help agents create and execute plans for complex tasks."
+    }
+}

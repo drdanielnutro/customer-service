@@ -1,0 +1,37 @@
+{
+    "project": "professor-virtual-adk-compliance-production",
+    "description": "Production environment configuration tasks for the Professor Virtual system ADK compliance.\n\n## Prerequisites\n- All immediate implementation tasks (tasks-immediate.json) must be completed\n- Access to Google Cloud Platform with appropriate permissions\n- Service Account with Vertex AI and Storage permissions\n\n## Important Notes\n- These tasks require production environment access\n- GCS bucket creation and configuration\n- Vertex AI API enablement\n- Service Account key management",
+    "created_at": "2025-01-30",
+    "tasks": [
+        {
+            "id": 8,
+            "title": "Configure environment variables for Dev/Prod switching",
+            "description": "Add environment variables to .env and update config.py to support automatic switching between InMemoryArtifactService (development) and GcsArtifactService (production/Vertex AI)",
+            "status": "pending",
+            "dependencies": [],
+            "priority": "high",
+            "details": "Para não esquecer nenhuma configuração e permitir alternar **InMemoryArtifactService** (desenvolvimento local) e **GcsArtifactService** (produção / Vertex AI) de modo automático, inclua:\n\n### 8.1 Variáveis adicionadas ao `.env`\n\n```dotenv\n# já existentes\nGOOGLE_GENAI_USE_VERTEXAI=0        # 0 = Gemini API local, 1 = Vertex AI\n\n# novas\nARTIFACT_STORAGE_TYPE=             # vazio → será derivado de GOOGLE_GENAI_USE_VERTEXAI\nGCS_BUCKET_NAME=adk-professor-virtual-artifacts\nGOOGLE_CLOUD_PROJECT=seu-projeto-id\nGOOGLE_CLOUD_LOCATION=us-central1\n```\n\n*Se `ARTIFACT_STORAGE_TYPE` ficar vazio, o código escolherá `memory` quando `GOOGLE_GENAI_USE_VERTEXAI=0` e `gcs` quando for `1`.*\n\n### 8.2 Ajuste em `config.py` — derivação automática\n\n```python\nclass Settings(BaseSettings):\n    GOOGLE_GENAI_USE_VERTEXAI: int = Field(0, env=\"GOOGLE_GENAI_USE_VERTEXAI\")\n\n    ARTIFACT_STORAGE_TYPE: str | None = Field(default=None, env=\"ARTIFACT_STORAGE_TYPE\")\n    GCS_BUCKET_NAME: str = Field(default=\"adk-professor-virtual-artifacts\", env=\"GCS_BUCKET_NAME\")\n    GOOGLE_CLOUD_PROJECT: str | None = Field(default=None, env=\"GOOGLE_CLOUD_PROJECT\")\n    GOOGLE_CLOUD_LOCATION: str | None = Field(default=None, env=\"GOOGLE_CLOUD_LOCATION\")\n\n    @property\n    def use_vertex(self) -> bool:\n        return self.GOOGLE_GENAI_USE_VERTEXAI == 1\n\n    @property\n    def artifact_storage(self) -> str:\n        # se explícito, usa; senão, deriva do modo VertexAI\n        return self.ARTIFACT_STORAGE_TYPE or (\"gcs\" if self.use_vertex else \"memory\")\n```",
+            "testStrategy": "Verify that .env contains all required environment variables (GOOGLE_GENAI_USE_VERTEXAI, ARTIFACT_STORAGE_TYPE, GCS_BUCKET_NAME, GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION), config.py has Settings class with all new fields and properties (use_vertex, artifact_storage), and the artifact_storage property correctly derives storage type from GOOGLE_GENAI_USE_VERTEXAI when ARTIFACT_STORAGE_TYPE is not explicitly set"
+        },
+        {
+            "id": 9,
+            "title": "Configure GCS permissions for production environment",
+            "description": "Set up Service Account permissions and authentication for Google Cloud Storage access in production",
+            "status": "pending",
+            "dependencies": [8],
+            "priority": "high",
+            "details": "### 8.4 Permissões GCS em produção\n\n1. Crie ou escolha um **Service Account** com:\n\n   * `Vertex AI User`\n   * `Storage Object Admin` (ou no mínimo `Storage Object Creator` + `Viewer`) no bucket definido em `GCS_BUCKET_NAME`.\n\n2. Defina `GOOGLE_APPLICATION_CREDENTIALS=/caminho/sa-key.json` no ambiente de execução (Cloud Run, Cloud Functions ou máquina local).\n\n3. Verifique que o bucket está na mesma região de `GOOGLE_CLOUD_LOCATION` para reduzir latência.",
+            "testStrategy": "Verify that Service Account has Vertex AI User and Storage Object Admin roles, GOOGLE_APPLICATION_CREDENTIALS environment variable points to valid service account key JSON file, bucket exists in GCS and is accessible with configured permissions, and bucket region matches GOOGLE_CLOUD_LOCATION setting"
+        },
+        {
+            "id": 10,
+            "title": "Execute recommended testing workflow across environments",
+            "description": "Follow the recommended testing workflow to validate artifact storage across development, GCS smoke-test, and production environments",
+            "status": "pending",
+            "dependencies": [8, 9],
+            "priority": "high",
+            "details": "### 8.5 Fluxo de testes recomendado\n\n| Etapa                          | Variáveis                                                     | Resultado esperado                                                                                  |\n| ------------------------------ | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |\n| **Dev local**                  | `GOOGLE_GENAI_USE_VERTEXAI=0`                                 | Artifacts em memória, descartados ao reiniciar                                                      |\n| **Smoke-test GCS** (validação) | `GOOGLE_GENAI_USE_VERTEXAI=1` + chave JSON + bucket existente | Arquivos **.wav / .png / .mp3** surgem em `gs://$GCS_BUCKET_NAME/app_name/user_id/session_id/.../0` |\n| **Produção**                   | Igual ao teste GCS + deploy Vertex AI                         | Mesmo comportamento, agora com modelo Vertex AI                                                     |",
+            "testStrategy": "Execute the three-stage testing workflow: 1) Dev local: verify artifacts are stored in memory with GOOGLE_GENAI_USE_VERTEXAI=0, 2) Smoke-test GCS: verify .wav/.png/.mp3 files appear in GCS bucket path with GOOGLE_GENAI_USE_VERTEXAI=1 and proper authentication, 3) Production: verify same GCS behavior with full Vertex AI deployment"
+        }
+    ]
+}
