@@ -3,6 +3,8 @@
 
 Este relatório descreve a estrutura e a funcionalidade do projeto "Professor Virtual", com foco na interconexão de seus componentes e na sua relação com o arquivo central **agent.py**.
 
+> **📱 Frontend Integration**: For frontend developers integrating with this backend, please refer to the [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md) for detailed instructions on how to properly communicate with the Professor Virtual ADK agent.
+
 ## Visão Geral do Projeto
 
 ```mermaid

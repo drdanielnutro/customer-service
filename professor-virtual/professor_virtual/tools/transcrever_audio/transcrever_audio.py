@@ -61,7 +61,7 @@ def _limpar_cache_se_necessario():
             del _transcription_cache[key]
 
 
-def transcrever_audio(
+async def transcrever_audio(
     nome_artefato_audio: str, 
     tool_context: ToolContext
 ) -> Dict[str, Any]:
@@ -78,11 +78,11 @@ def transcrever_audio(
     """
     try:
         # Carregar artifact usando método correto da documentação
-        audio_artifact = tool_context.load_artifact(nome_artefato_audio)
+        audio_artifact = await tool_context.load_artifact(nome_artefato_audio)
         
         if not audio_artifact:
             # Tentar buscar na mensagem do usuário como fallback
-            audio_artifact = _buscar_audio_na_mensagem(tool_context)
+            audio_artifact = await _buscar_audio_na_mensagem(tool_context)
             if not audio_artifact:
                 return {
                     "sucesso": False,
@@ -196,7 +196,7 @@ Se houver múltiplos falantes, indique com "Falante 1:", "Falante 2:", etc."""
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             transcript_artifact = types.Part.from_text(text=texto_transcrito)
             filename = f"transcricao_{timestamp}.txt"
-            versao_salva = tool_context.save_artifact(filename, transcript_artifact)
+            versao_salva = await tool_context.save_artifact(filename, transcript_artifact)
             arquivo_salvo = filename
         except Exception as e:
             logger.warning(f"Não foi possível salvar transcrição: {e}")
@@ -284,7 +284,7 @@ def _extrair_dados_do_artifact(artifact) -> tuple[bytes, str]:
     return None, None
 
 
-def _buscar_audio_na_mensagem(tool_context: ToolContext) -> Optional[Any]:
+async def _buscar_audio_na_mensagem(tool_context: ToolContext) -> Optional[Any]:
     """Busca áudio na mensagem do usuário como fallback.
     
     Baseado na documentação do ADK sobre acesso a user_content.
@@ -321,7 +321,7 @@ def _estimar_duracao(audio_bytes: bytes, formato: str) -> float:
 
 
 # Versão avançada com parâmetros opcionais (para futuro)
-def transcrever_audio_avancado(
+async def transcrever_audio_avancado(
     nome_artefato_audio: str,
     tool_context: ToolContext,
     incluir_timestamps: bool = False,
@@ -334,7 +334,7 @@ def transcrever_audio_avancado(
     """
     # Por enquanto, redireciona para função básica
     # Funcionalidades avançadas serão implementadas posteriormente
-    resultado = transcrever_audio(nome_artefato_audio, tool_context)
+    resultado = await transcrever_audio(nome_artefato_audio, tool_context)
     
     # Adicionar informação sobre configurações usadas
     if resultado.get("sucesso"):
