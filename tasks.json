@@ -68,13 +68,18 @@
       "id": 5,
       "title": "Update transcrever_audio.py to be async and fix deprecated APIs",
       "description": "Convert transcrever_audio function to async and fix deprecated artifact loading/saving APIs, including updating the auxiliary function _buscar_audio_na_mensagem",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
       "priority": "high",
       "details": "### PROBLEMA 1: Método deve ser assíncrono\n\n**❌ REMOVER (linha 46):**\n```python\ndef transcrever_audio(\n```\n\n**✅ SUBSTITUIR POR:**\n```python\nasync def transcrever_audio(\n```\n\n### PROBLEMA 2: load_artifact deve usar await\n\n**❌ REMOVER (linha 61):**\n```python\n        audio_artifact = tool_context.load_artifact(nome_artefato_audio)\n```\n\n**✅ SUBSTITUIR POR:**\n```python\n        audio_artifact = await tool_context.load_artifact(nome_artefato_audio)\n```\n\n### PROBLEMA 3: save_artifact deve usar await\n\n**❌ REMOVER (linha 151):**\n```python\n            versao_salva = tool_context.save_artifact(filename, transcript_artifact)\n```\n\n**✅ SUBSTITUIR POR:**\n```python\n            versao_salva = await tool_context.save_artifact(filename, transcript_artifact)\n```\n\n### PROBLEMA 4: Função auxiliar _buscar_audio_na_mensagem\n\n**❌ REMOVER (linha 227):**\n```python\ndef _buscar_audio_na_mensagem(tool_context: ToolContext) -> Optional[Any]:\n```\n\n**✅ SUBSTITUIR POR:**\n```python\nasync def _buscar_audio_na_mensagem(tool_context: ToolContext) -> Optional[Any]:\n```\n\n**❌ REMOVER (linha 65):**\n```python\n            audio_artifact = _buscar_audio_na_mensagem(tool_context)\n```\n\n**✅ SUBSTITUIR POR:**\n```python\n            audio_artifact = await _buscar_audio_na_mensagem(tool_context)\n```",
-      "testStrategy": "Verify that transcrever_audio function is async, uses await with tool_context.load_artifact() and tool_context.save_artifact(), the auxiliary function _buscar_audio_na_mensagem is also async, and all calls to _buscar_audio_na_mensagem use await"
+      "testStrategy": "Verify that transcrever_audio function is async, uses await with tool_context.load_artifact() and tool_context.save_artifact(), the auxiliary function _buscar_audio_na_mensagem is also async, and all calls to _buscar_audio_na_mensagem use await",
+      "started_at": "2025-07-30T18:19:10Z",
+      "completed_at": "2025-07-30T18:21:55Z",
+      "files_modified": [
+        "professor-virtual/professor_virtual/tools/transcrever_audio/transcrever_audio.py"
+      ]
     },
     {
       "id": 6,
