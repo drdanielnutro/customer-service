@@ -1,0 +1,114 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Auditoria e Reestruturação Completa do Projeto Professor-Virtual",
+      "description": "Baseado na análise do documento deep_research_gemini.md, analisar o projeto completo em 'professor-virtual/professor_virtual', verificando cada detalhe que deverá ser modificado para garantir que o contrato entre backend e frontend estejam no mais alto nível de qualidade e respeitando todas as regras do Google ADK, além de estar adequado do lado do frontend Flutter.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "details": "Esta tarefa crítica envolve a transformação completa do projeto Professor Virtual de uma implementação básica ADK para uma solução de produção robusta seguindo as diretrizes do documento deep_research_gemini.md.\n\nProblemas identificados no projeto atual:\n1. Uso direto do ADK Runner limitando controle sobre respostas HTTP\n2. Ausência de schemas Pydantic para validação consistente\n3. Gerenciamento de sessão inadequado não seguindo padrões ADK\n4. Tratamento de erros fragmentado sem formato unificado\n5. Integração Flutter problemática com contrato de API instável\n6. Falta de middleware de validação para interceptar respostas\n7. Endpoints não padronizados para operações específicas\n8. Documentação de integração incompleta\n\nSolução baseada na API Facade:\n- Implementar FastAPI customizada encapsulando ADK como biblioteca\n- Criar UnifiedAPIResponse schema para todas as operações\n- Reestruturar sistema de sessões seguindo padrões ADK\n- Padronizar tratamento de erros com formato JSON unificado\n- Atualizar artifact handler para compatibilidade Flutter\n- Implementar middleware de validação e interceptação\n- Criar endpoints customizados (/api/v1/chat, /api/v1/upload, /health)\n- Atualizar documentação com guias específicos Flutter",
+      "testStrategy": "Executar suite completa de testes incluindo: validação de schemas Pydantic, testes de integração Flutter, verificação de endpoints da API Facade, testes de gerenciamento de sessão, validação de tratamento de erros unificado, e testes de compatibilidade com todas as ferramentas existentes",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implementar API Facade com FastAPI Customizada",
+          "description": "Criar aplicação FastAPI que encapsula o ADK como biblioteca, substituindo o uso direto do ADK Runner para controle total sobre respostas HTTP.",
+          "dependencies": [],
+          "details": "Implementar a mudança de paradigma fundamental: tratar o ADK como biblioteca em vez de aplicação autônoma.\n\nArquivos a criar/modificar:\n- main.py: Aplicação FastAPI principal com lifespan management\n- api_facade.py: Classe principal da fachada\n- middleware/: Diretório para middleware customizado\n\nImplementação baseada no padrão do documento:\n```python\nfrom contextlib import asynccontextmanager\nfrom fastapi import FastAPI\nfrom google.adk.agents import Agent\nfrom google.adk.runners import Runner\nfrom google.adk.sessions import InMemorySessionService\n\n@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    # Inicializar componentes ADK\n    app_state[\"session_service\"] = InMemorySessionService()\n    app_state[\"agent\"] = root_agent\n    app_state[\"runner\"] = Runner(\n        agent=app_state[\"agent\"],\n        app_name=\"ProfessorVirtualAPI\",\n        session_service=app_state[\"session_service\"],\n        artifact_service=artifact_service\n    )\n    yield\n    app_state.clear()\n\napp = FastAPI(lifespan=lifespan, title=\"Professor Virtual API\")\n```\n\nResponsabilidades da fachada:\n- Expor API personalizada com endpoints versionados\n- Gerenciar comunicação com frontend\n- Encapsular lógica ADK internamente\n- Orquestrar interação com agente\n- Agregar fluxo de eventos em resposta JSON única",
+          "status": "pending",
+          "priority": "high",
+          "testStrategy": "Verificar se a aplicação FastAPI inicializa corretamente, componentes ADK são carregados no lifespan, endpoints básicos respondem, e integração com Runner funciona programaticamente",
+          "parentTaskId": 1
+        },
+        {
+          "id": 2,
+          "title": "Criar Schemas Pydantic Unificados",
+          "description": "Definir modelos Pydantic para UnifiedAPIResponse e todos os contratos de API, garantindo validação automática e documentação consistente.",
+          "dependencies": [],
+          "details": "Implementar o sistema de schemas baseado no documento de referência para garantir consistência total nas respostas.\n\nArquivos a criar:\n- schemas/unified_response.py: Schema principal UnifiedAPIResponse\n- schemas/chat_schemas.py: Modelos para operações de chat\n- schemas/upload_schemas.py: Modelos para upload de arquivos\n- schemas/error_schemas.py: Modelos para tratamento de erros\n\nSchema principal UnifiedAPIResponse:\n```python\nfrom typing import List, Literal, Union, Optional\nfrom pydantic import BaseModel, Field\n\nclass ErrorDetail(BaseModel):\n    code: str = Field(..., description=\"Código de erro interno\")\n    message: str = Field(..., description=\"Mensagem legível\")\n\nclass ChatResponseData(BaseModel):\n    final_message: str = Field(..., description=\"Resposta final do agente\")\n    tool_calls: List[str] = Field(default_factory=list, description=\"Ferramentas chamadas\")\n\nclass UploadResponseData(BaseModel):\n    artifact_id: str = Field(..., description=\"ID único do artefato\")\n    message: str = Field(..., description=\"Mensagem de confirmação\")\n\nclass UnifiedApiResponse(BaseModel):\n    status: Literal[\"success\", \"error\"] = Field(..., description=\"Resultado da operação\")\n    operation_type: Literal[\"chat\", \"upload\", \"status\", \"error\"] = Field(..., description=\"Tipo de operação\")\n    data: Optional[Union[ChatResponseData, UploadResponseData]] = Field(None, description=\"Dados da resposta\")\n    error: Optional[ErrorDetail] = Field(None, description=\"Detalhes do erro\")\n    session_id: str = Field(..., description=\"ID da sessão\")\n    request_id: str = Field(..., description=\"ID único da requisição\")\n```\n\nTodos os endpoints devem retornar este formato unificado.",
+          "status": "pending",
+          "priority": "high",
+          "testStrategy": "Validar que todos os schemas são válidos, geram documentação OpenAPI correta, validam dados de entrada/saída adequadamente, e são compatíveis com serialização JSON",
+          "parentTaskId": 1
+        },
+        {
+          "id": 3,
+          "title": "Reestruturar Sistema de Gerenciamento de Sessões",
+          "description": "Implementar gerenciamento de sessões seguindo padrões ADK corretos, com criação automática, persistência adequada e integração com frontend Flutter.",
+          "dependencies": [1],
+          "details": "Corrigir o sistema de sessões para seguir as melhores práticas do ADK conforme documentado no guia de referência.\n\nProblemas atuais identificados:\n- Sessões não são criadas automaticamente quando necessário\n- Falta validação de session_id e user_id\n- Não há persistência adequada entre requisições\n- Frontend não recebe session_id de forma consistente\n\nImplementação correta:\n```python\n@app.post(\"/api/v1/chat\", response_model=UnifiedApiResponse)\nasync def chat_handler(request_body: ChatRequest, http_request: Request):\n    runner: Runner = app_state[\"runner\"]\n    session_service: InMemorySessionService = app_state[\"session_service\"]\n    request_id = str(uuid.uuid4())\n\n    # Gerenciamento correto de sessão\n    session_id = request_body.session_id or str(uuid.uuid4())\n    try:\n        session_service.get_session(\n            app_name=runner.app_name, \n            user_id=request_body.user_id, \n            session_id=session_id\n        )\n    except KeyError:\n        session_service.create_session(\n            app_name=runner.app_name, \n            user_id=request_body.user_id, \n            session_id=session_id\n        )\n```\n\nResponsabilidades:\n- Criar sessões automaticamente quando não existem\n- Validar session_id e user_id em todas as requisições\n- Manter estado consistente entre chamadas\n- Retornar session_id para o frontend em todas as respostas\n- Implementar limpeza de sessões antigas",
+          "status": "pending",
+          "priority": "medium",
+          "testStrategy": "Testar criação automática de sessões, persistência entre requisições, validação de IDs, limpeza de sessões antigas, e integração correta com frontend Flutter",
+          "parentTaskId": 1
+        },
+        {
+          "id": 4,
+          "title": "Padronizar Tratamento de Erros com Formato Unificado",
+          "description": "Implementar sistema de tratamento de erros padronizado que sempre retorna respostas no formato UnifiedAPIResponse, mesmo em casos de falha.",
+          "dependencies": [2],
+          "details": "Criar sistema robusto de tratamento de erros que garante que o frontend sempre receba respostas no formato esperado.\n\nImplementação de exception handlers globais:\n```python\nfrom fastapi import Request, status\nfrom fastapi.responses import JSONResponse\nfrom fastapi.exceptions import RequestValidationError\n\n@app.exception_handler(RequestValidationError)\nasync def validation_exception_handler(request: Request, exc: RequestValidationError):\n    error_detail = ErrorDetail(\n        code=\"INVALID_REQUEST\", \n        message=str(exc)\n    )\n    return JSONResponse(\n        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,\n        content=UnifiedApiResponse(\n            status=\"error\",\n            operation_type=\"error\",\n            error=error_detail,\n            session_id=\"N/A\",\n            request_id=str(uuid.uuid4()),\n        ).model_dump()\n    )\n\n@app.exception_handler(Exception)\nasync def generic_exception_handler(request: Request, exc: Exception):\n    error_detail = ErrorDetail(\n        code=\"INTERNAL_SERVER_ERROR\", \n        message=\"Erro inesperado no servidor\"\n    )\n    return JSONResponse(\n        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,\n        content=UnifiedApiResponse(\n            status=\"error\",\n            operation_type=\"error\",\n            error=error_detail,\n            session_id=\"N/A\",\n            request_id=str(uuid.uuid4()),\n        ).model_dump()\n    )\n```\n\nCategorias de erro a implementar:\n- Erros de validação de entrada\n- Erros de execução do agente\n- Erros de upload de arquivo\n- Erros de sessão\n- Erros de rede/timeout\n- Erros internos do servidor",
+          "status": "pending",
+          "priority": "high",
+          "testStrategy": "Testar todos os tipos de erro retornam formato UnifiedAPIResponse, códigos HTTP corretos são usados, mensagens são informativas, e frontend pode processar erros adequadamente",
+          "parentTaskId": 1
+        },
+        {
+          "id": 5,
+          "title": "Atualizar Artifact Handler para Compatibilidade Flutter",
+          "description": "Reestruturar o artifact_handler.py para total compatibilidade com Flutter, seguindo o padrão de base64 encoding e formato de resposta unificado.",
+          "dependencies": [2, 4],
+          "details": "Atualizar o sistema de upload de arquivos para seguir exatamente as especificações do documento de referência e garantir compatibilidade total com Flutter.\n\nProblemas atuais:\n- Formato de resposta inconsistente\n- Falta validação adequada de tipos de arquivo\n- Não segue padrão UnifiedAPIResponse\n- Documentação desatualizada\n\nImplementação correta:\n```python\n@app.post(\"/api/v1/upload\", response_model=UnifiedApiResponse)\nasync def upload_handler(\n    user_id: str,\n    session_id: str,\n    file: UploadFile = File(...)\n):\n    request_id = str(uuid.uuid4())\n    artifact_service = app_state[\"runner\"]._artifact_service\n\n    try:\n        file_content = await file.read()\n        \n        artifact_id = await artifact_service.save_artifact(\n            app_name=app_state[\"runner\"].app_name,\n            user_id=user_id,\n            session_id=session_id,\n            artifact_content=file_content,\n            artifact_name=file.filename,\n            artifact_mime_type=file.content_type\n        )\n\n        upload_data = UploadResponseData(\n            artifact_id=artifact_id,\n            message=f\"Arquivo '{file.filename}' carregado com sucesso.\"\n        )\n\n        return UnifiedApiResponse(\n            status=\"success\",\n            operation_type=\"upload\",\n            data=upload_data,\n            session_id=session_id,\n            request_id=request_id,\n        )\n    except Exception as e:\n        error_detail = ErrorDetail(code=\"UPLOAD_FAILED\", message=str(e))\n        return JSONResponse(\n            status_code=500, \n            content=UnifiedApiResponse(\n                status=\"error\",\n                operation_type=\"error\",\n                error=error_detail,\n                session_id=session_id,\n                request_id=request_id\n            ).model_dump()\n        )\n```\n\nValidações a implementar:\n- Tipos de arquivo suportados (audio/*, image/*)\n- Tamanho máximo de arquivo\n- Validação de MIME type\n- Encoding base64 correto\n- Integração com ArtifactService",
+          "status": "pending",
+          "priority": "high",
+          "testStrategy": "Testar upload de diferentes tipos de arquivo, validação de tamanho e formato, resposta no formato UnifiedAPIResponse, integração com Flutter, e tratamento de erros de upload",
+          "parentTaskId": 1
+        },
+        {
+          "id": 6,
+          "title": "Implementar Middleware de Validação e Interceptação",
+          "description": "Criar middleware FastAPI para interceptar todas as respostas e garantir que seguem o formato UnifiedAPIResponse, além de adicionar headers de segurança e CORS.",
+          "dependencies": [1, 2],
+          "details": "Implementar middleware robusto que garante consistência total nas respostas da API, seguindo o padrão documentado no guia de referência.\n\nMiddleware de padronização de respostas:\n```python\nfrom fastapi import Request, Response\nfrom fastapi.responses import JSONResponse\nimport json\nimport time\n\n@app.middleware(\"http\")\nasync def standardize_responses(request: Request, call_next):\n    response = await call_next(request)\n    \n    # Interceptar respostas JSON\n    if response.headers.get(\"content-type\") == \"application/json\":\n        body = b\"\"\n        async for chunk in response.body_iterator:\n            body += chunk\n        \n        try:\n            original_data = json.loads(body)\n            \n            # Verificar se já está no formato unificado\n            if not _is_unified_format(original_data):\n                # Transformar para formato unificado\n                unified_response = {\n                    \"status\": \"success\" if response.status_code < 400 else \"error\",\n                    \"operation_type\": _determine_operation_type(request.url.path),\n                    \"data\": original_data if response.status_code < 400 else None,\n                    \"error\": original_data if response.status_code >= 400 else None,\n                    \"session_id\": _extract_session_id(request),\n                    \"request_id\": str(uuid.uuid4()),\n                    \"metadata\": {\n                        \"endpoint\": str(request.url.path),\n                        \"method\": request.method,\n                        \"timestamp\": time.time()\n                    }\n                }\n                \n                return JSONResponse(\n                    content=unified_response,\n                    status_code=response.status_code\n                )\n        except:\n            pass\n    \n    return response\n```\n\nFuncionalidades do middleware:\n- Interceptação de todas as respostas HTTP\n- Transformação automática para UnifiedAPIResponse\n- Adição de headers de segurança (CORS, CSP, etc.)\n- Logging de requisições para auditoria\n- Rate limiting básico\n- Validação de autenticação (JWT)",
+          "status": "pending",
+          "priority": "medium",
+          "testStrategy": "Verificar que todas as respostas seguem formato unificado, headers de segurança são adicionados, CORS funciona corretamente, rate limiting é aplicado, e logging é registrado adequadamente",
+          "parentTaskId": 1
+        },
+        {
+          "id": 7,
+          "title": "Criar Endpoints Customizados da API Facade",
+          "description": "Implementar endpoints específicos (/api/v1/chat, /api/v1/upload, /health) que agregam o fluxo de eventos ADK em respostas JSON únicas para o frontend.",
+          "dependencies": [1, 2, 3],
+          "details": "Criar os endpoints principais da API Facade que encapsulam a complexidade do ADK e fornecem interface limpa para o frontend Flutter.\n\nEndpoint principal /api/v1/chat:\n```python\n@app.post(\"/api/v1/chat\", response_model=UnifiedApiResponse)\nasync def chat_handler(request_body: ChatRequest, http_request: Request):\n    runner: Runner = app_state[\"runner\"]\n    request_id = str(uuid.uuid4())\n\n    # Preparar mensagem para ADK\n    user_content = content_types.Content(\n        role=\"user\", \n        parts=[Part.from_text(request_body.query)]\n    )\n\n    # Agregação do fluxo de eventos - CRÍTICO\n    final_message_text = \"\"\n    tool_calls_made = []\n\n    try:\n        event_stream = runner.run_async(\n            user_id=request_body.user_id,\n            session_id=session_id,\n            new_message=user_content,\n        )\n\n        # Processar todos os eventos e agregar resultado\n        async for event in event_stream:\n            # Capturar chamadas de ferramentas\n            if event.content and event.content.parts:\n                for part in event.content.parts:\n                    if hasattr(part, 'function_call') and part.function_call:\n                        tool_calls_made.append(part.function_call.name)\n            \n            # Capturar resposta final\n            if event.is_final_response():\n                if event.content and event.content.parts:\n                    final_message_text = event.content.parts.text\n        \n        # Construir resposta unificada\n        chat_data = ChatResponseData(\n            final_message=final_message_text,\n            tool_calls=list(set(tool_calls_made))\n        )\n        \n        return UnifiedApiResponse(\n            status=\"success\",\n            operation_type=\"chat\",\n            data=chat_data,\n            session_id=session_id,\n            request_id=request_id,\n        )\n    except Exception as e:\n        # Tratamento de erro padronizado\n        pass\n```\n\nEndpoints a implementar:\n- POST /api/v1/chat: Interação principal com agente\n- POST /api/v1/upload: Upload de arquivos\n- GET /health: Health check para load balancers\n- GET /api/v1/sessions/{session_id}: Status da sessão\n- DELETE /api/v1/sessions/{session_id}: Limpar sessão\n\nCaracterística crítica: Agregação do fluxo de eventos SSE em resposta JSON única.",
+          "status": "pending",
+          "priority": "high",
+          "testStrategy": "Testar que endpoints agregam eventos corretamente, retornam formato unificado, integram com Flutter, gerenciam sessões adequadamente, e tratam erros de forma consistente",
+          "parentTaskId": 1
+        },
+        {
+          "id": 8,
+          "title": "Atualizar Documentação de Integração Flutter",
+          "description": "Revisar e atualizar completamente o FRONTEND_INTEGRATION_GUIDE.md com exemplos específicos para a nova API Facade, schemas atualizados e melhores práticas.",
+          "dependencies": [2, 5, 7],
+          "details": "Atualizar toda a documentação de integração para refletir a nova arquitetura API Facade e garantir que desenvolvedores Flutter tenham guias completos e precisos.\n\nSeções a atualizar no FRONTEND_INTEGRATION_GUIDE.md:\n\n1. **Visão Geral da Nova Arquitetura**:\n   - Explicar mudança para API Facade\n   - Benefícios da nova abordagem\n   - Diferenças do servidor ADK padrão\n\n2. **Novos Formatos de Request/Response**:\n   ```dart\n   class UnifiedApiResponse {\n     final String status; // 'success' | 'error'\n     final String operationType; // 'chat' | 'upload' | 'status' | 'error'\n     final Map<String, dynamic>? data;\n     final Map<String, String>? error;\n     final String sessionId;\n     final String requestId;\n   }\n   ```\n\n3. **Exemplos Flutter Atualizados**:\n   - Classe ADKService completa\n   - Tratamento de UnifiedApiResponse\n   - Gerenciamento de sessão correto\n   - Upload de arquivos com base64\n   - Tratamento de erros padronizado\n\n4. **Novos Endpoints da API**:\n   - POST /api/v1/chat (substitui /invoke)\n   - POST /api/v1/upload (formato atualizado)\n   - GET /health (novo)\n   - Endpoints de sessão atualizados\n\n5. **Melhores Práticas Atualizadas**:\n   - Autenticação JWT (se implementada)\n   - Rate limiting\n   - Tratamento de timeout\n   - Retry logic\n   - Progress indication\n\n6. **Exemplos de Código Completos**:\n   - Cliente Flutter completo\n   - Modelos Dart para todos os schemas\n   - Tratamento de diferentes tipos de resposta\n   - Upload de arquivos com validação\n\n7. **Troubleshooting Atualizado**:\n   - Novos códigos de erro\n   - Problemas comuns da API Facade\n   - Debugging de sessões\n   - Validação de schemas",
+          "status": "pending",
+          "priority": "medium",
+          "testStrategy": "Verificar que documentação está completa e precisa, exemplos de código funcionam, todos os endpoints estão documentados, e guias de troubleshooting são úteis",
+          "parentTaskId": 1
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "projectName": "Professor Virtual - Integração Frontend/Backend ADK",
+    "totalTasks": 1,
+    "totalSubtasks": 8,
+    "sourceFile": "documento_referencia_selecionado.md",
+    "creationDate": "2025-07-30",
+    "generatedAt": "2025-07-30T22:33:46Z",
+    "description": "Reestruturação completa do projeto Professor Virtual para implementar API Facade seguindo melhores práticas do Google ADK e garantir integração robusta com frontend Flutter",
+    "project": "professor-virtual-adk-integration"
+  }
+}
