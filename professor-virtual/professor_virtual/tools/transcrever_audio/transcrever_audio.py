@@ -321,7 +321,7 @@ def _estimar_duracao(audio_bytes: bytes, formato: str) -> float:
 
 
 # Versão avançada com parâmetros opcionais (para futuro)
-def transcrever_audio_avancado(
+async def transcrever_audio_avancado(
     nome_artefato_audio: str,
     tool_context: ToolContext,
     incluir_timestamps: bool = False,
@@ -334,7 +334,7 @@ def transcrever_audio_avancado(
     """
     # Por enquanto, redireciona para função básica
     # Funcionalidades avançadas serão implementadas posteriormente
-    resultado = transcrever_audio(nome_artefato_audio, tool_context)
+    resultado = await transcrever_audio(nome_artefato_audio, tool_context)
     
     # Adicionar informação sobre configurações usadas
     if resultado.get("sucesso"):
