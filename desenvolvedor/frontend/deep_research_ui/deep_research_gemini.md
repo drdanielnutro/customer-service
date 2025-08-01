@@ -99,14 +99,14 @@ As responsabilidades desta fachada são:
 
 A tabela a seguir resume as vantagens da abordagem de API Facade em comparação com o uso do servidor ADK padrão para uma aplicação de produção voltada para o frontend.
 
-| Característica | Servidor Padrão (`adk api_server`) | API Facade Personalizada (FastAPI) |
-| :--- | :--- | :--- |
-| **Formato da Resposta** | Fluxo de Eventos (Server-Sent Events) | JSON Unificado (Controle Total) |
-| **Customização de Endpoints** | Não suportada | Totalmente customizável (ex: `/api/v1/...`) |
-| **Autenticação/Autorização** | Inexistente (servidor aberto) | Padrões da indústria (JWT, OAuth2, etc.) |
-| **Validação de Requisição/Resposta** | Básica (interna do ADK) | Avançada e explícita com Pydantic |
-| **Tratamento de Erros** | Erros brutos do servidor (ex: 500) | Formato de erro JSON padronizado |
-| **Caso de Uso Ideal** | Desenvolvimento local, depuração, A2A | Integração de produção com frontend |
+| Característica                       | Servidor Padrão (`adk api_server`)    | API Facade Personalizada (FastAPI)          |
+| :----------------------------------- | :------------------------------------ | :------------------------------------------ |
+| **Formato da Resposta**              | Fluxo de Eventos (Server-Sent Events) | JSON Unificado (Controle Total)             |
+| **Customização de Endpoints**        | Não suportada                         | Totalmente customizável (ex: `/api/v1/...`) |
+| **Autenticação/Autorização**         | Inexistente (servidor aberto)         | Padrões da indústria (JWT, OAuth2, etc.)    |
+| **Validação de Requisição/Resposta** | Básica (interna do ADK)               | Avançada e explícita com Pydantic           |
+| **Tratamento de Erros**              | Erros brutos do servidor (ex: 500)    | Formato de erro JSON padronizado            |
+| **Caso de Uso Ideal**                | Desenvolvimento local, depuração, A2A | Integração de produção com frontend         |
 
 Esta comparação deixa claro que, para os requisitos de um sistema de produção que se comunica com um frontend, a API Facade não é apenas uma opção, mas a abordagem arquitetural correta.
 

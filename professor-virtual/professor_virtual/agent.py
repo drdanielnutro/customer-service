@@ -42,6 +42,7 @@ from .tools import (
     analisar_necessidade_visual,
     analisar_imagem_educacional,
     gerar_audio_tts,
+    upload_arquivo,
 )
 
 warnings.filterwarnings("ignore", category=UserWarning, module=".*pydantic.*")
@@ -69,6 +70,7 @@ root_agent = Agent(
         analisar_necessidade_visual,
         analisar_imagem_educacional,
         gerar_audio_tts,
+        upload_arquivo,  # Nova tool para uploads com ToolContext correto
     ],
     generate_content_config=configs.generate_content_config,
     before_tool_callback=before_tool,

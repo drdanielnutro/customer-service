@@ -1,12 +1,15 @@
-"""Handler para processar uploads e criar artifacts do frontend.
+"""Frontend integration guidelines for file uploads in Professor Virtual.
 
 FRONTEND INTEGRATION GUIDELINES
 ================================
 
-This module handles file uploads from frontend applications (Flutter, React, etc.)
-and creates ADK artifacts for processing by the Professor Virtual agent.
+IMPORTANT: The upload functionality has been moved to tools/upload_arquivo/upload_arquivo.py
+as an ADK Tool to properly use ToolContext instead of InvocationContext.
 
-IMPORTANT: Frontend developers must follow these guidelines for proper integration.
+This module now serves as documentation for frontend developers on how to integrate
+with the Professor Virtual file upload system.
+
+Frontend developers must follow these guidelines for proper integration.
 
 Frontend Request Format
 ----------------------
@@ -47,7 +50,7 @@ Success Response:
 {
     "success": true,
     "filename": "pergunta_aluno_123.wav",
-    "version": "v1",
+    "version": 0,  // Note: version is now an integer, not "v1"
     "size": 123456
 }
 
@@ -90,82 +93,29 @@ if (responseData['success']) {
   print('Upload failed: ${responseData['error']}');
 }
 ```
-"""
 
-import base64
-from typing import Dict, Any
-from google.genai import types
-from google.adk.agents.invocation_context import InvocationContext
+HOW IT WORKS NOW
+----------------
+The file upload functionality is implemented as an ADK Tool called 'upload_arquivo'.
+When the frontend sends an upload request, the ADK agent will automatically invoke
+this tool, which has access to the proper ToolContext for saving artifacts.
 
+The flow is:
+1. Frontend sends JSON request with file data
+2. ADK Runner receives the request
+3. Agent processes the request and invokes 'upload_arquivo' tool
+4. Tool saves the artifact and returns confirmation
+5. Response is sent back to frontend
 
-async def handle_file_upload(
-    file_data: Dict[str, Any],
-    context: InvocationContext
-) -> Dict[str, Any]:
-    """
-    Processa upload de arquivo do frontend e cria artifact.
-    
-    This function is the main entry point for frontend file uploads.
-    It handles the conversion from base64 data to ADK artifacts.
-    
-    Args:
-        file_data: Dict containing:
-            - content: Base64 encoded file content (string)
-            - mime_type: MIME type of the file (e.g., "audio/wav", "image/jpeg")
-            - filename: Unique filename for the artifact
-        context: ADK InvocationContext for artifact management
-        
-    Returns:
-        Dict containing:
-            - success: Boolean indicating if upload was successful
-            - filename: The filename used for the artifact (on success)
-            - version: The version assigned by ADK (on success)
-            - size: Size of the file in bytes (on success)
-            - error: Error message (on failure)
-            
-    Example:
-        >>> file_data = {
-        ...     "content": "UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB...",
-        ...     "mime_type": "audio/wav",
-        ...     "filename": "student_question_001.wav"
-        ... }
-        >>> result = await handle_file_upload(file_data, context)
-        >>> print(result)
-        {
-            "success": True,
-            "filename": "student_question_001.wav",
-            "version": "v1",
-            "size": 46382
-        }
-    """
-    try:
-        # Decodificar base64 se necessário
-        if isinstance(file_data['content'], str):
-            content_bytes = base64.b64decode(file_data['content'])
-        else:
-            content_bytes = file_data['content']
-            
-        # Criar Part do arquivo
-        artifact = types.Part.from_data(
-            data=content_bytes,
-            mime_type=file_data['mime_type']
-        )
-        
-        # Salvar artifact
-        version = await context.save_artifact(
-            filename=file_data['filename'],
-            artifact=artifact
-        )
-        
-        return {
-            "success": True,
-            "filename": file_data['filename'],
-            "version": version,
-            "size": len(content_bytes)
-        }
-        
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
+IMPORTANT CHANGES:
+- The version field in responses is now an integer (0, 1, 2...) not a string ("v1")
+- The actual implementation is in tools/upload_arquivo/upload_arquivo.py
+- The tool uses ToolContext which has the save_artifact method
+
+Example Response (note the integer version):
+{
+    "success": true,
+    "filename": "student_question_001.wav",
+    "version": 0,  // Integer, not "v1"
+    "size": 46382
+}
